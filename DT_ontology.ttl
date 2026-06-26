@@ -33,6 +33,7 @@ nedt:layer  a owl:AnnotationProperty ;
     a owl:Ontology ;
     dct:title      "National Energy Digital Twin (NEDT) Ontology"@en ;
     dct:creator    "Divyanshu Sood" ,
+                   "Cathal Hoare" ,
                    "Sharon Coffee" ,
                    "James O'Donnell" ;
     dct:description "An OWL ontology describing building archetypes, hourly energy profiles, LV-network attribution, scenarios (including rooftop-PV adoption), KPI evaluation and visualisation components of the National Energy Digital Twin (NEDT) for Ireland."@en ;

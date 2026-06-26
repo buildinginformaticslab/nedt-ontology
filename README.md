@@ -163,6 +163,7 @@ print("Conforms:", conforms)
 ## Authors
 
 - Divyanshu Sood
+- Cathal Hoare
 - Sharon Coffee
 - James O'Donnell
 
