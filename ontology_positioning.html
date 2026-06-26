@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>CDT ontology — positioning &amp; coverage</title>
+<style>
+  html, body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: #f3f6fa; color: #222; }
+  .toolbar {
+    background: #fff; border-bottom: 1px solid #d5dde6;
+    padding: 10px 20px; display: flex; gap: 8px; align-items: center;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .toolbar h1 { font-size: 15px; font-weight: 600; margin: 0 14px 0 0; color: #2a3d55; }
+  .toolbar button {
+    border: 1px solid #cfd6df; background: #fff; color: #333;
+    padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;
+  }
+  .toolbar button:hover { background: #eef3f9; }
+  .toolbar button.active { background: #2d6fb5; color: #fff; border-color: #2d6fb5; }
+  .toolbar .spacer { flex: 1; }
+  .view { display: none; }
+  .view.active { display: block; }
+  #bpmn-view { height: calc(100vh - 55px); }
+  #bpmn-canvas { width: 100%; height: 100%; }
+  #matrix-view { padding: 30px 40px; overflow-x: auto; }
+  #matrix-caption { max-width: 900px; font-size: 13px; color: #4a5768; margin: 12px 0 20px 0; line-height: 1.5; }
+  .legend-bpmn { font-size: 12px; color: #55606f; margin-left: 12px; }
+  .legend-bpmn .swatch { display: inline-block; width: 12px; height: 12px; border: 1px solid #888; vertical-align: middle; margin: 0 4px 0 10px; }
+  .sw-cdt { background: #ffe6d4; border-color: #c76a2a !important; }
+  .sw-dom { background: #e2f4dc; border-color: #3b8c24 !important; }
+  .sw-fnd { background: #dbe8f7; border-color: #2d6fb5 !important; }
+
+  /* bpmn-js colour classes via canvas.addMarker() */
+  .djs-element.s-cdt .djs-visual > :first-child {
+    fill: #ffe6d4 !important; stroke: #c76a2a !important; stroke-width: 2px !important;
+  }
+  .djs-element.s-domain .djs-visual > :first-child {
+    fill: #e2f4dc !important; stroke: #3b8c24 !important; stroke-width: 2px !important;
+  }
+  .djs-element.s-foundational .djs-visual > :first-child {
+    fill: #dbe8f7 !important; stroke: #2d6fb5 !important; stroke-width: 2px !important;
+  }
+  .djs-element.assoc .djs-connection > path,
+  .djs-element.assoc > .djs-visual > path {
+    stroke: #7a5230 !important; stroke-width: 1.8px !important;
+    stroke-dasharray: 6,3 !important; fill: none !important;
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>CDT ontology — positioning &amp; coverage</h1>
+  <button id="btn-bpmn" class="active">Positioning diagram</button>
+  <button id="btn-matrix">Coverage matrix</button>
+  <span class="spacer"></span>
+  <span class="legend-bpmn" id="lbl-legend">
+    <span class="swatch sw-fnd"></span>Foundational W3C
+    <span class="swatch sw-dom"></span>Domain / shared
+    <span class="swatch sw-cdt"></span>CDT (this work)
+  </span>
+  <button id="btn-fit">Fit</button>
+  <button id="btn-zi">+</button>
+  <button id="btn-zo">−</button>
+  <button id="btn-dlsvg">Download .svg</button>
+  <button id="btn-dlbpmn">Download .bpmn</button>
+</div>
+
+<div id="bpmn-view" class="view active"><div id="bpmn-canvas"></div></div>
+
+<div id="matrix-view" class="view">
+  <div id="matrix-caption">
+    <strong>Coverage of the 15 competency questions (CQ1–CQ15) by existing ontologies vs. the CDT extension.</strong>
+    CQ13–CQ15 were added in v1.2 (district-heating viability, group-heating candidates, LV-node flexibility). Each cell is scored <code>s∈{0,1,2}</code> (○ none / ◐ partial / ● full). The right-hand <em>%-coverage</em> column aggregates each row as
+    <code>Σs / (2 × n<sub>CQ</sub>) × 100</code>, with <code>n<sub>CQ</sub>=15</code> (max 30 score points per row). The <em>Best-of existing (union)</em> row takes the per-column maximum across all reused ontologies and shows the residual gap that the CDT extension closes. The CDT row (orange) reaches 100 % by construction. Matrix mirrors §9 of <em>DT_ontology_paper.md</em>.
+  </div>
+  <svg id="matrix-svg" xmlns="http://www.w3.org/2000/svg" width="1220" height="560"
+       viewBox="0 0 1220 560" font-family="-apple-system, Segoe UI, sans-serif">
+    <!-- filled at runtime -->
+  </svg>
+</div>
+
+<script src="https://unpkg.com/bpmn-js@17.9.2/dist/bpmn-navigated-viewer.production.min.js"></script>
+<script>
+// -----------------------------------------------------------------
+//  BPMN XML
+// -----------------------------------------------------------------
+const BPMN_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+    xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+    xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+    id="OntologyPositioning" targetNamespace="https://example.org/nedt#">
+  <bpmn:collaboration id="Collab_1">
+    <bpmn:participant id="Pool_1" name="Ontology stack — CDT positioned against existing ontologies (v1.2 · 15 CQs)" processRef="Process_1"/>
+    <bpmn:textAnnotation id="Legend_1">
+      <bpmn:text>Alignment axioms already in DT_ontology.ttl (v1.2):
+• nedt:Archetype         rdfs:seeAlso         bot:Building, gd:Building
+• nedt:LVStation         owl:equivalentClass  saragon:Transformer
+• nedt:County            rdfs:seeAlso         osi:County, gd:GeoAddress
+• nedt:HullPolygon       rdfs:seeAlso         geo:Geometry
+• nedt:GeoLocation       rdfs:seeAlso         geo:Feature
+• nedt:BuildingShare     rdfs:seeAlso         saragon:hasServiceArea
+• nedt:DTRun             rdfs:subClassOf      prov:Activity
+• nedt:SensitivityRun    rdfs:subClassOf      prov:Activity
+• nedt:ScenarioAssumption rdfs:subClassOf     prov:Entity
+• nedt:ThermalDemandCluster rdfs:seeAlso      bot:Zone                  (v1.2)
+• nedt:HeatDensity       rdfs:subClassOf      sosa:ObservableProperty   (v1.2)
+• nedt:FlexibleLoad      rdfs:subClassOf      nedt:EndUseLoad            (v1.2)</bpmn:text>
+    </bpmn:textAnnotation>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:laneSet>
+      <bpmn:lane id="Lane_App" name="CDT application layer — this work (v1.1 subprocesses + v1.2 supervisor CQs)">
+        <bpmn:flowNodeRef>T1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T5</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T6</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T7</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Dom" name="Domain / shared ontologies">
+        <bpmn:flowNodeRef>D1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>D2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>D3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>D4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>D5</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>D6</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>D7</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>D8</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Found" name="Foundational W3C standards">
+        <bpmn:flowNodeRef>F1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>F2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>F3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>F4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>F5</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:subProcess id="T1" name="Archetype &amp; typed descriptors (BERRating · DwellingType · ConstructionPeriod) — CQ1"/>
+    <bpmn:subProcess id="T2" name="LV aggregation &amp; OverloadEvent attribution — CQ5 · CQ6"/>
+    <bpmn:subProcess id="T3" name="End-use load decomposition &amp; scenarios — CQ2 · CQ3 · CQ4"/>
+    <bpmn:subProcess id="T4" name="County / National KPI scope &amp; ReinforcementNeed — CQ8 · CQ9 · CQ10"/>
+    <bpmn:subProcess id="T5" name="Provenance typing (DTRun · SensitivityRun · ScenarioAssumption) — CQ11 · CQ12"/>
+    <bpmn:subProcess id="T6" name="District-heating viability &amp; group-heating candidates (v1.2) — CQ13 · CQ14"/>
+    <bpmn:subProcess id="T7" name="LV-node flexibility &amp; DR capacity (v1.2) — CQ15"/>
+
+    <bpmn:task id="D1" name="BOT"/>
+    <bpmn:task id="D2" name="SARAGON"/>
+    <bpmn:task id="D3" name="SAREF4ENER"/>
+    <bpmn:task id="D4" name="GeoDirectory"/>
+    <bpmn:task id="D5" name="OSi"/>
+    <bpmn:task id="D6" name="GeoSPARQL"/>
+    <bpmn:task id="D7" name="QUDT"/>
+    <bpmn:task id="D8" name="OWL-Time"/>
+
+    <bpmn:task id="F1" name="RDF / RDFS"/>
+    <bpmn:task id="F2" name="OWL"/>
+    <bpmn:task id="F3" name="SSN / SOSA"/>
+    <bpmn:task id="F4" name="PROV-O"/>
+    <bpmn:task id="F5" name="SKOS"/>
+
+    <bpmn:association id="A1"  associationDirection="One" sourceRef="T1" targetRef="D1"/>
+    <bpmn:association id="A2"  associationDirection="One" sourceRef="T2" targetRef="D2"/>
+    <bpmn:association id="A3"  associationDirection="One" sourceRef="T3" targetRef="D3"/>
+    <bpmn:association id="A4"  associationDirection="One" sourceRef="T4" targetRef="D5"/>
+    <bpmn:association id="A5"  associationDirection="One" sourceRef="T5" targetRef="F4"/>
+    <bpmn:association id="A6"  associationDirection="One" sourceRef="T1" targetRef="D4"/>
+    <bpmn:association id="A7"  associationDirection="One" sourceRef="T2" targetRef="D6"/>
+    <bpmn:association id="A8"  associationDirection="One" sourceRef="T6" targetRef="D6"/>
+    <bpmn:association id="A9"  associationDirection="One" sourceRef="T6" targetRef="D7"/>
+    <bpmn:association id="A10" associationDirection="One" sourceRef="T6" targetRef="D4"/>
+    <bpmn:association id="A11" associationDirection="One" sourceRef="T7" targetRef="D3"/>
+    <bpmn:association id="A12" associationDirection="One" sourceRef="T7" targetRef="D8"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_1">
+    <bpmndi:BPMNPlane id="Plane_1" bpmnElement="Collab_1">
+      <bpmndi:BPMNShape id="Pool_1_di" bpmnElement="Pool_1" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1240" height="700"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_App_di" bpmnElement="Lane_App" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1210" height="300"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Dom_di" bpmnElement="Lane_Dom" isHorizontal="true">
+        <dc:Bounds x="190" y="380" width="1210" height="200"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Found_di" bpmnElement="Lane_Found" isHorizontal="true">
+        <dc:Bounds x="190" y="580" width="1210" height="200"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="T1_di" bpmnElement="T1" isExpanded="false">
+        <dc:Bounds x="210" y="125" width="180" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T2_di" bpmnElement="T2" isExpanded="false">
+        <dc:Bounds x="430" y="125" width="180" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T3_di" bpmnElement="T3" isExpanded="false">
+        <dc:Bounds x="650" y="125" width="180" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T4_di" bpmnElement="T4" isExpanded="false">
+        <dc:Bounds x="870" y="125" width="180" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T5_di" bpmnElement="T5" isExpanded="false">
+        <dc:Bounds x="1090" y="125" width="200" height="70"/></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="T6_di" bpmnElement="T6" isExpanded="false">
+        <dc:Bounds x="300" y="255" width="300" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T7_di" bpmnElement="T7" isExpanded="false">
+        <dc:Bounds x="820" y="255" width="300" height="80"/></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="D1_di" bpmnElement="D1">
+        <dc:Bounds x="220" y="445" width="130" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D2_di" bpmnElement="D2">
+        <dc:Bounds x="370" y="445" width="130" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D3_di" bpmnElement="D3">
+        <dc:Bounds x="520" y="445" width="130" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D4_di" bpmnElement="D4">
+        <dc:Bounds x="670" y="445" width="130" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D5_di" bpmnElement="D5">
+        <dc:Bounds x="820" y="445" width="130" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D6_di" bpmnElement="D6">
+        <dc:Bounds x="970" y="445" width="130" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D7_di" bpmnElement="D7">
+        <dc:Bounds x="1120" y="445" width="130" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D8_di" bpmnElement="D8">
+        <dc:Bounds x="1270" y="445" width="130" height="70"/></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="F1_di" bpmnElement="F1">
+        <dc:Bounds x="220" y="645" width="170" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F2_di" bpmnElement="F2">
+        <dc:Bounds x="460" y="645" width="170" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F3_di" bpmnElement="F3">
+        <dc:Bounds x="700" y="645" width="170" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F4_di" bpmnElement="F4">
+        <dc:Bounds x="940" y="645" width="170" height="70"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F5_di" bpmnElement="F5">
+        <dc:Bounds x="1180" y="645" width="170" height="70"/></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Legend_1_di" bpmnElement="Legend_1">
+        <dc:Bounds x="160" y="810" width="1240" height="160"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="A1_di" bpmnElement="A1">
+        <di:waypoint x="300" y="195"/>
+        <di:waypoint x="300" y="230"/>
+        <di:waypoint x="285" y="230"/>
+        <di:waypoint x="285" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A2_di" bpmnElement="A2">
+        <di:waypoint x="520" y="195"/>
+        <di:waypoint x="520" y="230"/>
+        <di:waypoint x="435" y="230"/>
+        <di:waypoint x="435" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A3_di" bpmnElement="A3">
+        <di:waypoint x="740" y="195"/>
+        <di:waypoint x="740" y="240"/>
+        <di:waypoint x="585" y="240"/>
+        <di:waypoint x="585" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A4_di" bpmnElement="A4">
+        <di:waypoint x="960" y="195"/>
+        <di:waypoint x="960" y="235"/>
+        <di:waypoint x="885" y="235"/>
+        <di:waypoint x="885" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A5_di" bpmnElement="A5">
+        <di:waypoint x="1190" y="195"/>
+        <di:waypoint x="1190" y="590"/>
+        <di:waypoint x="1025" y="590"/>
+        <di:waypoint x="1025" y="645"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A6_di" bpmnElement="A6">
+        <di:waypoint x="300" y="195"/>
+        <di:waypoint x="300" y="220"/>
+        <di:waypoint x="735" y="220"/>
+        <di:waypoint x="735" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A7_di" bpmnElement="A7">
+        <di:waypoint x="520" y="195"/>
+        <di:waypoint x="520" y="225"/>
+        <di:waypoint x="1035" y="225"/>
+        <di:waypoint x="1035" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A8_di" bpmnElement="A8">
+        <di:waypoint x="450" y="335"/>
+        <di:waypoint x="450" y="400"/>
+        <di:waypoint x="1035" y="400"/>
+        <di:waypoint x="1035" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A9_di" bpmnElement="A9">
+        <di:waypoint x="520" y="335"/>
+        <di:waypoint x="520" y="390"/>
+        <di:waypoint x="1185" y="390"/>
+        <di:waypoint x="1185" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A10_di" bpmnElement="A10">
+        <di:waypoint x="380" y="335"/>
+        <di:waypoint x="380" y="415"/>
+        <di:waypoint x="735" y="415"/>
+        <di:waypoint x="735" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A11_di" bpmnElement="A11">
+        <di:waypoint x="900" y="335"/>
+        <di:waypoint x="900" y="405"/>
+        <di:waypoint x="585" y="405"/>
+        <di:waypoint x="585" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A12_di" bpmnElement="A12">
+        <di:waypoint x="1050" y="335"/>
+        <di:waypoint x="1050" y="420"/>
+        <di:waypoint x="1335" y="420"/>
+        <di:waypoint x="1335" y="445"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
+
+// -----------------------------------------------------------------
+//  BPMN viewer
+// -----------------------------------------------------------------
+const viewer = new BpmnJS({ container: '#bpmn-canvas' });
+viewer.importXML(BPMN_XML).then(() => {
+  const canvas = viewer.get('canvas');
+  ['T1','T2','T3','T4','T5','T6','T7'].forEach(id => canvas.addMarker(id, 's-cdt'));
+  ['D1','D2','D3','D4','D5','D6','D7','D8'].forEach(id => canvas.addMarker(id, 's-domain'));
+  ['F1','F2','F3','F4','F5'].forEach(id => canvas.addMarker(id, 's-foundational'));
+  ['A1','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','A12'].forEach(id => canvas.addMarker(id, 'assoc'));
+  canvas.zoom('fit-viewport');
+});
+
+// -----------------------------------------------------------------
+//  Coverage matrix (SVG)
+// -----------------------------------------------------------------
+const MATRIX = {
+  cqs: ['CQ1','CQ2','CQ3','CQ4','CQ5','CQ6','CQ7','CQ8','CQ9','CQ10','CQ11','CQ12','CQ13','CQ14','CQ15'],
+  rows: [
+    { label: 'BOT',                       data: [1,0,0,1,1,0,0,0,0,0,0,0, 0,0,0] },
+    { label: 'SARAGON / SAREF4ENER',      data: [0,1,0,1,2,1,1,1,0,1,0,0, 0,0,1] },
+    { label: 'GeoDirectory / OSi',        data: [2,0,0,0,2,0,0,2,2,2,0,0, 1,1,0] },
+    { label: 'GeoSPARQL',                 data: [1,0,0,0,2,0,0,2,2,2,0,0, 1,1,0] },
+    { label: 'QUDT',                      data: [0,0,0,0,0,1,0,1,1,0,0,0, 1,0,1] },
+    { label: 'OWL-Time',                  data: [0,1,1,1,1,1,1,1,1,1,0,1, 0,0,1] },
+    { label: 'PROV-O',                    data: [0,0,1,0,0,0,0,0,0,0,1,2, 0,0,0] },
+    { label: 'Best-of existing (union)',  data: [2,1,1,1,2,1,1,2,2,2,1,2, 1,1,1], union: true },
+    { label: 'CDT (this work)',           data: [2,2,2,2,2,2,2,2,2,2,2,2, 2,2,2], nedt: true },
+  ],
+};
+
+function drawMatrix() {
+  const svg = document.getElementById('matrix-svg');
+  svg.innerHTML = '';
+  const NS = 'http://www.w3.org/2000/svg';
+  const leftPad = 200, topPad = 60, cellW = 55, cellH = 40;
+  const nCQ = MATRIX.cqs.length;
+  const pctGap = 18;                                   // space between last CQ and %-column
+  const pctX   = leftPad + nCQ * cellW + pctGap;       // left edge of %-column
+  const pctW   = 110;                                  // width of %-column
+
+  // title
+  const title = document.createElementNS(NS,'text');
+  title.setAttribute('x', 20); title.setAttribute('y', 30);
+  title.setAttribute('font-size', 15); title.setAttribute('font-weight', 600);
+  title.setAttribute('fill', '#2a3d55');
+  title.textContent = 'Competency-question coverage — existing ontologies vs. CDT extension';
+  svg.appendChild(title);
+
+  // CQ headers
+  MATRIX.cqs.forEach((cq, i) => {
+    const x = leftPad + i * cellW + cellW/2;
+    const t = document.createElementNS(NS,'text');
+    t.setAttribute('x', x); t.setAttribute('y', topPad - 6);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('font-size',12);
+    t.setAttribute('font-weight',600); t.setAttribute('fill','#2a3d55');
+    t.textContent = cq;
+    svg.appendChild(t);
+  });
+
+  // %-column header
+  const pctHdr = document.createElementNS(NS,'text');
+  pctHdr.setAttribute('x', pctX + pctW/2); pctHdr.setAttribute('y', topPad - 6);
+  pctHdr.setAttribute('text-anchor','middle'); pctHdr.setAttribute('font-size',12);
+  pctHdr.setAttribute('font-weight',600); pctHdr.setAttribute('fill','#2a3d55');
+  pctHdr.textContent = '% coverage';
+  svg.appendChild(pctHdr);
+
+  const maxScore = 2 * nCQ;
+  MATRIX.rows.forEach((row, r) => {
+    const y = topPad + r * cellH;
+
+    // row label
+    const rl = document.createElementNS(NS,'text');
+    rl.setAttribute('x', leftPad - 10); rl.setAttribute('y', y + cellH/2 + 4);
+    rl.setAttribute('text-anchor','end'); rl.setAttribute('font-size',12);
+    const lblWeight = row.cdt || row.union ? 700 : 500;
+    const lblFill   = row.cdt ? '#c76a2a' : row.union ? '#3f4a5a' : '#2a3d55';
+    rl.setAttribute('font-weight', lblWeight);
+    rl.setAttribute('fill', lblFill);
+    rl.textContent = row.label;
+    svg.appendChild(rl);
+
+    row.data.forEach((v, c) => {
+      const x = leftPad + c * cellW;
+      const cell = document.createElementNS(NS,'rect');
+      cell.setAttribute('x', x); cell.setAttribute('y', y);
+      cell.setAttribute('width', cellW-2); cell.setAttribute('height', cellH-2);
+      cell.setAttribute('stroke', '#cfd6df');
+      let fill = '#ffffff';
+      if (row.cdt) {
+        fill = v === 2 ? '#ffa962' : v === 1 ? '#ffd7b0' : '#ffffff';
+      } else if (row.union) {
+        fill = v === 2 ? '#8893a1' : v === 1 ? '#dde2e8' : '#ffffff';
+      } else {
+        fill = v === 2 ? '#2d6fb5' : v === 1 ? '#c8e1f5' : '#ffffff';
+      }
+      cell.setAttribute('fill', fill);
+      svg.appendChild(cell);
+
+      const g = document.createElementNS(NS,'text');
+      g.setAttribute('x', x + cellW/2 - 1);
+      g.setAttribute('y', y + cellH/2 + 5);
+      g.setAttribute('text-anchor','middle');
+      g.setAttribute('font-size',16);
+      g.setAttribute('font-weight',700);
+      let glyphFill = v === 2 ? '#ffffff' : v === 1 ? '#2a3d55' : '#c3ccd7';
+      if (row.cdt)   glyphFill = v === 2 ? '#7a3f10' : '#b86a27';
+      if (row.union) glyphFill = v === 2 ? '#ffffff' : v === 1 ? '#2a3d55' : '#c3ccd7';
+      g.setAttribute('fill', glyphFill);
+      g.textContent = v === 2 ? '●' : v === 1 ? '◐' : '○';
+      svg.appendChild(g);
+    });
+
+    // %-coverage cell
+    const sum = row.data.reduce((a,b) => a+b, 0);
+    const pct = Math.round((sum / maxScore) * 1000) / 10;   // 1 decimal
+    // bar background
+    const barBg = document.createElementNS(NS,'rect');
+    barBg.setAttribute('x', pctX); barBg.setAttribute('y', y);
+    barBg.setAttribute('width', pctW); barBg.setAttribute('height', cellH-2);
+    barBg.setAttribute('fill', '#f3f6fa');
+    barBg.setAttribute('stroke', '#cfd6df');
+    svg.appendChild(barBg);
+    // filled bar
+    const barFill = document.createElementNS(NS,'rect');
+    barFill.setAttribute('x', pctX); barFill.setAttribute('y', y);
+    barFill.setAttribute('width', (pct/100) * pctW);
+    barFill.setAttribute('height', cellH-2);
+    const barColor = row.cdt ? '#ffa962' : row.union ? '#8893a1' : '#2d6fb5';
+    barFill.setAttribute('fill', barColor);
+    barFill.setAttribute('fill-opacity', 0.85);
+    svg.appendChild(barFill);
+    // label
+    const pctT = document.createElementNS(NS,'text');
+    pctT.setAttribute('x', pctX + pctW/2); pctT.setAttribute('y', y + cellH/2 + 4);
+    pctT.setAttribute('text-anchor','middle'); pctT.setAttribute('font-size',12);
+    pctT.setAttribute('font-weight', 700);
+    pctT.setAttribute('fill', pct >= 55 ? '#ffffff' : '#2a3d55');
+    pctT.textContent = pct.toFixed(1) + ' %';
+    svg.appendChild(pctT);
+  });
+
+  // separator line above the union row (second-to-last) to visually set it apart
+  const sepRow = MATRIX.rows.length - 2;               // union row index
+  if (MATRIX.rows[sepRow] && MATRIX.rows[sepRow].union) {
+    const sepY = topPad + sepRow * cellH;
+    const sep = document.createElementNS(NS,'line');
+    sep.setAttribute('x1', leftPad - 190); sep.setAttribute('y1', sepY);
+    sep.setAttribute('x2', pctX + pctW);   sep.setAttribute('y2', sepY);
+    sep.setAttribute('stroke', '#3f4a5a'); sep.setAttribute('stroke-width', 1.2);
+    sep.setAttribute('stroke-dasharray', '4,3');
+    svg.appendChild(sep);
+  }
+
+  // legend at bottom
+  const ly = topPad + MATRIX.rows.length * cellH + 36;
+  const items = [
+    { label: '● full (s=2)',      color: '#2d6fb5' },
+    { label: '◐ partial (s=1)',   color: '#c8e1f5' },
+    { label: '○ none (s=0)',      color: '#ffffff' },
+    { label: 'Best-of union',     color: '#8893a1' },
+    { label: 'CDT fills gap',     color: '#ffa962' },
+  ];
+  let lx = 20;
+  items.forEach(it => {
+    const r = document.createElementNS(NS,'rect');
+    r.setAttribute('x', lx); r.setAttribute('y', ly - 12);
+    r.setAttribute('width', 16); r.setAttribute('height', 16);
+    r.setAttribute('fill', it.color); r.setAttribute('stroke','#8893a1');
+    svg.appendChild(r);
+    const t = document.createElementNS(NS,'text');
+    t.setAttribute('x', lx + 22); t.setAttribute('y', ly + 2);
+    t.setAttribute('font-size',12); t.setAttribute('fill','#4a5768');
+    t.textContent = it.label;
+    svg.appendChild(t);
+    lx += 22 + 115;
+  });
+}
+drawMatrix();
+
+// -----------------------------------------------------------------
+//  View toggle
+// -----------------------------------------------------------------
+const views = { bpmn: 'bpmn-view', matrix: 'matrix-view' };
+function setView(v) {
+  Object.entries(views).forEach(([k, id]) => {
+    document.getElementById(id).classList.toggle('active', k === v);
+  });
+  document.getElementById('btn-bpmn').classList.toggle('active', v === 'bpmn');
+  document.getElementById('btn-matrix').classList.toggle('active', v === 'matrix');
+  document.getElementById('btn-dlbpmn').style.display = v === 'bpmn' ? '' : 'none';
+  document.getElementById('btn-fit').style.display = v === 'bpmn' ? '' : 'none';
+  document.getElementById('btn-zi').style.display = v === 'bpmn' ? '' : 'none';
+  document.getElementById('btn-zo').style.display = v === 'bpmn' ? '' : 'none';
+  document.getElementById('lbl-legend').style.display = v === 'bpmn' ? '' : 'none';
+  if (v === 'bpmn') viewer.get('canvas').zoom('fit-viewport');
+}
+document.getElementById('btn-bpmn').addEventListener('click', () => setView('bpmn'));
+document.getElementById('btn-matrix').addEventListener('click', () => setView('matrix'));
+
+// -----------------------------------------------------------------
+//  Toolbar actions
+// -----------------------------------------------------------------
+document.getElementById('btn-fit').addEventListener('click', () => viewer.get('canvas').zoom('fit-viewport'));
+document.getElementById('btn-zi').addEventListener('click', () => {
+  const c = viewer.get('canvas'); c.zoom(c.zoom() * 1.2);
+});
+document.getElementById('btn-zo').addEventListener('click', () => {
+  const c = viewer.get('canvas'); c.zoom(c.zoom() / 1.2);
+});
+document.getElementById('btn-dlbpmn').addEventListener('click', () => {
+  viewer.saveXML({ format: true }).then(({ xml }) => {
+    const blob = new Blob([xml], { type: 'application/xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ontology_positioning.bpmn';
+    a.click();
+  });
+});
+document.getElementById('btn-dlsvg').addEventListener('click', () => {
+  if (document.getElementById('bpmn-view').classList.contains('active')) {
+    viewer.saveSVG().then(({ svg }) => {
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'ontology_positioning.svg';
+      a.click();
+    });
+  } else {
+    const svg = document.getElementById('matrix-svg').outerHTML;
+    const blob = new Blob(['<?xml version="1.0"?>\n' + svg], { type: 'image/svg+xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ontology_coverage_matrix.svg';
+    a.click();
+  }
+});
+</script>
+<script>
+/* fig_export: floating toolbar — exports every <svg> in the page as PNG or SVG */
+(function(){
+  function baseName(){
+    const t = document.title || 'figure';
+    return t.replace(/[^\w\-]+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'') || 'figure';
+  }
+  function serializeSVG(svg){
+    const vb = svg.viewBox && svg.viewBox.baseVal;
+    const w = (vb && vb.width)  ? vb.width  : (svg.clientWidth  || parseInt(svg.getAttribute('width') ||'1200',10));
+    const h = (vb && vb.height) ? vb.height : (svg.clientHeight || parseInt(svg.getAttribute('height')||'800', 10));
+    const clone = svg.cloneNode(true);
+    clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
+    clone.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink');
+    clone.setAttribute('width', w);
+    clone.setAttribute('height', h);
+    let css = '';
+    document.querySelectorAll('style').forEach(s => { css += s.textContent + '\n'; });
+    let defs = clone.querySelector('defs');
+    if (!defs) {
+      defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+      clone.insertBefore(defs, clone.firstChild);
+    }
+    const styleEl = document.createElementNS('http://www.w3.org/2000/svg','style');
+    styleEl.textContent = css;
+    defs.insertBefore(styleEl, defs.firstChild);
+    const xml = '<?xml version="1.0" standalone="no"?>\n' + new XMLSerializer().serializeToString(clone);
+    return { xml, w, h };
+  }
+  function svgToPng(svg, scale, suffix){
+    const s = serializeSVG(svg);
+    const blob = new Blob([s.xml], { type:'image/svg+xml;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width  = Math.round(s.w * scale);
+        canvas.height = Math.round(s.h * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((b) => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(b);
+          a.download = baseName() + (suffix||'') + '_' + scale + 'x.png';
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(() => { URL.revokeObjectURL(a.href); URL.revokeObjectURL(url); }, 1500);
+          resolve(a.download + ' (' + canvas.width + '×' + canvas.height + 'px)');
+        }, 'image/png');
+      };
+      img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+      img.src = url;
+    });
+  }
+  function svgToSvgFile(svg, suffix){
+    const s = serializeSVG(svg);
+    const blob = new Blob([s.xml], { type:'image/svg+xml;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = baseName() + (suffix||'') + '.svg';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    return a.download;
+  }
+  const bar = document.createElement('div');
+  bar.setAttribute('data-fig-export','');
+  bar.style.cssText = 'position:fixed;top:10px;right:10px;z-index:99999;background:#fff;border:1px solid #bbb;border-radius:6px;padding:8px 10px;font:12px -apple-system,Helvetica,Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.08);';
+  bar.innerHTML =
+    '<b style="font-size:11px;color:#444;">Export figure</b>' +
+    '<div style="margin-top:6px;">Scale: <select data-scale style="font-size:11px;">' +
+      '<option value="2">2× (150dpi)</option>' +
+      '<option value="4" selected>4× (300dpi)</option>' +
+      '<option value="6">6× (450dpi)</option>' +
+      '<option value="8">8× (600dpi)</option>' +
+    '</select></div>' +
+    '<div style="margin-top:6px;display:flex;gap:6px;">' +
+      '<button data-png style="padding:4px 8px;font-size:11px;cursor:pointer;">PNG</button>' +
+      '<button data-svg style="padding:4px 8px;font-size:11px;cursor:pointer;">SVG</button>' +
+    '</div>' +
+    '<div data-msg style="margin-top:6px;font-size:10.5px;color:#555;max-width:220px;line-height:1.35;"></div>';
+  document.body.appendChild(bar);
+  const scaleSel = bar.querySelector('[data-scale]');
+  const msg      = bar.querySelector('[data-msg]');
+  bar.querySelector('[data-png]').addEventListener('click', async () => {
+    const svgs = document.querySelectorAll('svg');
+    if (!svgs.length) { msg.textContent = 'No SVG found in this page.'; return; }
+    const scale = parseInt(scaleSel.value, 10) || 4;
+    msg.textContent = 'Rendering…';
+    try {
+      const out = [];
+      for (let i = 0; i < svgs.length; i++){
+        const sfx = svgs.length > 1 ? '_' + (i+1) : '';
+        out.push(await svgToPng(svgs[i], scale, sfx));
+      }
+      msg.innerHTML = 'Saved:<br>• ' + out.join('<br>• ');
+    } catch (e) { msg.textContent = 'Export failed — see browser console.'; console.error(e); }
+  });
+  bar.querySelector('[data-svg]').addEventListener('click', () => {
+    const svgs = document.querySelectorAll('svg');
+    if (!svgs.length) { msg.textContent = 'No SVG found in this page.'; return; }
+    const out = [];
+    svgs.forEach((svg, i) => {
+      const sfx = svgs.length > 1 ? '_' + (i+1) : '';
+      out.push(svgToSvgFile(svg, sfx));
+    });
+    msg.innerHTML = 'Saved:<br>• ' + out.join('<br>• ');
+  });
+})();
+</script>
+
+</body>
+</html>
