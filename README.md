@@ -23,11 +23,46 @@ The NEDT ontology provides a shared, machine-interpretable vocabulary for a nati
 
 ## Visualise
 
-Explore the ontology interactively (no install needed):
+### Option 1 — WebVOWL (ontology class diagram, no install)
 
-**[Open in WebVOWL](https://service.tib.eu/webvowl/#iri=https://raw.githubusercontent.com/nedt-ireland/nedt-ontology/main/DT_ontology.ttl)**
+WebVOWL renders the ontology as an interactive node-link diagram showing all classes and properties.
 
-Or upload `DT_ontology.ttl` manually at [service.tib.eu/webvowl](https://service.tib.eu/webvowl).
+**Step 1 — Open WebVOWL**
+Go to [service.tib.eu/webvowl](https://service.tib.eu/webvowl) in your browser.
+
+**Step 2 — Load the ontology**
+- Click **`Ontology`** in the bottom bar
+- Select **`Upload local ontology file`**
+- Choose `DT_ontology.ttl` from this repo
+
+**Step 3 — Explore**
+- Pan and zoom the class graph
+- Click any node to see its properties and relationships
+- Use the **Filter** panel (bottom bar) to show/hide modules
+- Use **Search** (top bar) to jump to a specific class e.g. `LVStation`
+
+**Step 4 — Share with your team**
+- Click **`Export`** → **`Share current ontology`**
+- Copy the permalink URL — anyone with it sees the same view instantly, no account needed
+
+---
+
+### Option 2 — Interactive HTML viewers (GitHub Pages)
+
+Once GitHub Pages is enabled on this repo, open these directly in any browser:
+
+| Viewer | What it shows |
+|---|---|
+| [DT_kg_viewer.html](DT_kg_viewer.html) | Full interactive knowledge graph — click nodes, filter by class |
+| [DT_kg_visualiser.html](DT_kg_visualiser.html) | Alternative KG layout |
+| [ontology_diagrams.html](ontology_diagrams.html) | 9 SVG panels — one per ontology module |
+| [ontology_positioning.html](ontology_positioning.html) | Coverage matrix vs existing ontologies |
+| [ontology_relations.html](ontology_relations.html) | Class relations view |
+
+**To enable GitHub Pages:**
+1. Go to the repo on GitHub → **Settings** → **Pages**
+2. Source: `main` branch, folder `/` (root) → click **Save**
+3. Your viewers will be live at `https://buildinginformaticslab.github.io/nedt-ontology/`
 
 ---
 
@@ -140,5 +175,5 @@ If you use this ontology, please cite:
 ```
 Sood, D., Coffee, S., O'Donnell, J. (2026).
 A Modular Ontology for the National Energy Digital Twin (NEDT).
-https://github.com/nedt-ireland/nedt-ontology
+https://github.com/buildinginformaticslab/nedt-ontology
 ```
