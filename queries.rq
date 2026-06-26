@@ -1,0 +1,138 @@
+# SPARQL queries for NEDT (National Energy Digital Twin) ontology
+# Ontology: DT_ontology.ttl  |  Instances: DT_instances_v11.ttl
+# All queries use the live https://example.org/nedt# prefix
+
+PREFIX nedt:  <https://example.org/nedt#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX geo:  <http://www.opengis.net/ont/geosparql#>
+PREFIX ssn:  <http://www.w3.org/ns/ssn/>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 1. All counties in the model
+# ─────────────────────────────────────────────────────────────────────────────
+SELECT ?county ?label
+WHERE {
+  ?county a nedt:County ;
+          rdfs:label ?label .
+}
+ORDER BY ?label
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2. All LV substations with their kVA capacity
+# ─────────────────────────────────────────────────────────────────────────────
+SELECT ?station ?kva
+WHERE {
+  ?station a nedt:LVStation ;
+           nedt:ratedKVA ?kva .
+}
+ORDER BY DESC(?kva)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. Overloaded stations and their dominant drivers
+# ─────────────────────────────────────────────────────────────────────────────
+SELECT ?station ?driver
+WHERE {
+  ?station a nedt:OverloadedStation .
+  OPTIONAL { ?station nedt:hasDominantDriver ?driver . }
+}
+ORDER BY ?station
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. All scenarios defined in the model
+# ─────────────────────────────────────────────────────────────────────────────
+SELECT ?scenario ?type ?label
+WHERE {
+  ?scenario a ?type ;
+            rdfs:label ?label .
+  ?type rdfs:subClassOf* nedt:Scenario .
+}
+ORDER BY ?type ?label
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. Heat-pump transitions per county (HP adoption counts)
+# ─────────────────────────────────────────────────────────────────────────────
+SELECT ?county ?transition ?count
+WHERE {
+  ?transition a nedt:HPTransition ;
+              nedt:inCounty ?county ;
+              nedt:transitionCount ?count .
+}
+ORDER BY ?county DESC(?count)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 6. Building archetypes with BER and build type
+# ─────────────────────────────────────────────────────────────────────────────
+SELECT ?archetype ?ber ?buildType
+WHERE {
+  ?archetype a nedt:Archetype .
+  OPTIONAL { ?archetype nedt:hasBER ?ber . }
+  OPTIONAL { ?archetype nedt:hasBuildType ?buildType . }
+}
+ORDER BY ?ber ?buildType
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. KPIs and their evaluated objects
+# ─────────────────────────────────────────────────────────────────────────────
+SELECT ?kpi ?type ?evaluatedObject
+WHERE {
+  ?kpi a ?type ;
+       nedt:hasKPIEvaluatedObject ?evaluatedObject .
+  ?type rdfs:subClassOf* nedt:KPI .
+}
+ORDER BY ?type ?kpi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 8. Station transitions — top movers
+# ─────────────────────────────────────────────────────────────────────────────
+SELECT ?station ?stationTransition
+WHERE {
+  ?station a nedt:LVStation ;
+           nedt:hasStationTransition ?stationTransition .
+}
+ORDER BY ?station
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 9. PV systems and their generation profiles
+# ─────────────────────────────────────────────────────────────────────────────
+SELECT ?pv ?profile
+WHERE {
+  ?pv a nedt:PVSystem .
+  OPTIONAL { ?pv nedt:hasPVProfile ?profile . }
+}
+ORDER BY ?pv
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 10. County-level heat density and fuel breakdown
+# ─────────────────────────────────────────────────────────────────────────────
+SELECT ?county ?heatDensity ?fuelComponent
+WHERE {
+  ?county a nedt:County .
+  OPTIONAL { ?county nedt:hasHeatDensity ?heatDensity . }
+  OPTIONAL { ?county nedt:hasHeatFuelComponent ?fuelComponent . }
+}
+ORDER BY ?county
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 11. Station utilisation status (ok / warning / overloaded)
+# ─────────────────────────────────────────────────────────────────────────────
+SELECT ?station ?utilisation ?status
+WHERE {
+  ?station a nedt:LVStation .
+  OPTIONAL { ?station nedt:hasUtilisation ?u . ?u nedt:utilisationFraction ?utilisation . }
+  OPTIONAL { ?station nedt:hasUtilisationStatus ?status . }
+}
+ORDER BY DESC(?utilisation)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 12. All classes defined in the ontology (schema introspection)
+# ─────────────────────────────────────────────────────────────────────────────
+SELECT DISTINCT ?class ?label
+WHERE {
+  ?class a owl:Class .
+  OPTIONAL { ?class rdfs:label ?label . }
+}
+ORDER BY ?label

@@ -1,0 +1,194 @@
+@prefix nedt: <https://example.org/nedt#> .
+@prefix inst: <https://example.org/nedt/inst/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+inst:EndUse_appliance a nedt:EndUseLoad ;
+    rdfs:label "Appliance"@en ;
+    nedt:endUse "appliance" .
+
+inst:EndUse_cooking a nedt:EndUseLoad ;
+    rdfs:label "Cooking"@en ;
+    nedt:endUse "cooking" .
+
+inst:EndUse_dhw a nedt:EndUseLoad ;
+    rdfs:label "DHW"@en ;
+    nedt:endUse "dhw" .
+
+inst:EndUse_lighting a nedt:EndUseLoad ;
+    rdfs:label "Lighting"@en ;
+    nedt:endUse "lighting" .
+
+inst:Exp_SD_B2_post2011_S2_2035 a nedt:ExportedEnergy ;
+    sosa:hasSimpleResult 2104.5 ;
+    nedt:derivedUnder inst:Scenario_S2_2035 ;
+    nedt:hasKPIEvaluatedObject inst:PV_SD_B2_post2011_4kWp .
+
+inst:KPI_CountyPeak a nedt:CountyKPI ;
+    rdfs:label "County coincident peak demand"@en .
+
+inst:KPI_NatPeak a nedt:NationalKPI ;
+    rdfs:label "National coincident peak demand"@en .
+
+inst:LVAgg_Louth_0412_S2_2035 a nedt:LVAggregation ;
+    rdfs:label "Aggregation LV_Louth_0412 / S2_2035"@en .
+
+inst:OE_Louth_0412_20350118_1800 a nedt:OverloadEvent ;
+    nedt:occursAt "2035-01-18T18:00:00"^^xsd:dateTime ;
+    nedt:overloadMagnitude_kW 48.2 .
+
+inst:RevFlow_Louth_0412_0 a nedt:ReversePowerFlowHour ;
+    time:inXSDDateTimeStamp "2035-05-12T13:00:00"^^xsd:dateTimeStamp ;
+    nedt:derivedUnder inst:Scenario_S2_2035 .
+
+inst:RevFlow_Louth_0412_1 a nedt:ReversePowerFlowHour ;
+    time:inXSDDateTimeStamp "2035-06-14T14:00:00"^^xsd:dateTimeStamp ;
+    nedt:derivedUnder inst:Scenario_S2_2035 .
+
+inst:RevFlow_Louth_0412_2 a nedt:ReversePowerFlowHour ;
+    time:inXSDDateTimeStamp "2035-07-21T12:00:00"^^xsd:dateTimeStamp ;
+    nedt:derivedUnder inst:Scenario_S2_2035 .
+
+inst:SensRun_S2_2035_HPvsEV a nedt:SensitivityRun ;
+    rdfs:label "Sensitivity: HP% vs EV% vs PV kWp · S2 · 2035"@en ;
+    prov:used inst:Scenario_S2_2035 .
+
+inst:Arch_SD_B2_post2011 a nedt:Archetype ;
+    rdfs:label "Detached·B2·post-2011·HP"@en ;
+    nedt:hasDescriptor inst:BER_B2,
+        inst:DType_Detached,
+        inst:Period_post2011 ;
+    nedt:hasPVSystem inst:PV_SD_B2_post2011_4kWp .
+
+inst:Arch_TH_D1_1971 a nedt:Archetype ;
+    rdfs:label "Terraced·D1·1971-1990·Oil"@en ;
+    nedt:hasDescriptor inst:BER_D1,
+        inst:DType_Terraced,
+        inst:Period_1971_1990 .
+
+inst:Att_Louth_0412_20350118_1800 a nedt:OverloadAttribution ;
+    nedt:ranksBy inst:Contrib_Louth_0412_20350118_1800_ev,
+        inst:Contrib_Louth_0412_20350118_1800_hp_replace,
+        inst:Contrib_Louth_0412_20350118_1800_space_heat .
+
+inst:BER_B2 a nedt:BERRating ;
+    rdfs:label "B2"@en .
+
+inst:BER_D1 a nedt:BERRating ;
+    rdfs:label "D1"@en .
+
+inst:Contrib_Louth_0412_20350118_1800_ev a nedt:EndUseContribution ;
+    nedt:attributedToEndUse inst:EndUse_ev ;
+    nedt:contributionPercent 24.0 .
+
+inst:Contrib_Louth_0412_20350118_1800_hp_replace a nedt:EndUseContribution ;
+    nedt:attributedToEndUse inst:EndUse_hp_replace ;
+    nedt:contributionPercent 62.0 .
+
+inst:Contrib_Louth_0412_20350118_1800_space_heat a nedt:EndUseContribution ;
+    nedt:attributedToEndUse inst:EndUse_space_heat ;
+    nedt:contributionPercent 14.0 .
+
+inst:County_Louth a nedt:County ;
+    rdfs:label "Co. Louth"@en .
+
+inst:DS_CSO_SAPS_2022 a nedt:DatumSource ;
+    rdfs:label "CSO SAPS 2022"@en .
+
+inst:DS_ESB_LV_2024 a nedt:DatumSource ;
+    rdfs:label "ESB LV substation geojson 2024"@en .
+
+inst:DS_Nexsys_2024 a nedt:DatumSource ;
+    rdfs:label "Nexsys archetype profile catalogue 2024"@en .
+
+inst:DS_SEAI_BER_2024 a nedt:DatumSource ;
+    rdfs:label "SEAI BER Research v2024"@en .
+
+inst:DTRun_Louth_S2_2035 a nedt:DTRun ;
+    rdfs:label "DT run: Louth · S2 · 2035"@en ;
+    prov:generated inst:Peak_Louth_2035_S2,
+        inst:RN_Louth_0412_2035,
+        inst:SCR_SD_B2_post2011_S2_2035 ;
+    prov:used inst:Assumption_CAP_HP,
+        inst:DS_CSO_SAPS_2022,
+        inst:DS_ESB_LV_2024,
+        inst:DS_Nexsys_2024,
+        inst:DS_SEAI_BER_2024 .
+
+inst:DType_Detached a nedt:DwellingType ;
+    rdfs:label "Detached"@en .
+
+inst:DType_Terraced a nedt:DwellingType ;
+    rdfs:label "Terraced"@en .
+
+inst:EndUse_ev a nedt:EndUseLoad ;
+    rdfs:label "EV Charging"@en ;
+    nedt:endUse "ev" .
+
+inst:EndUse_hp_replace a nedt:EndUseLoad ;
+    rdfs:label "HP Replacement"@en ;
+    nedt:endUse "hp_replace" .
+
+inst:EndUse_space_heat a nedt:EndUseLoad ;
+    rdfs:label "Space Heat"@en ;
+    nedt:endUse "space_heat" .
+
+inst:LV_Louth_0412 a nedt:LVStation,
+        nedt:OverloadedStation ;
+    rdfs:label "LV_Louth_0412"@en ;
+    nedt:hasAttribution inst:Att_Louth_0412_20350118_1800 .
+
+inst:Peak_Louth_2035_S2 a nedt:CoincidentPeak ;
+    rdfs:label "peak_Louth_2035_S2"@en ;
+    time:inXSDDateTimeStamp "2035-01-18T18:00:00"^^xsd:dateTimeStamp ;
+    prov:wasGeneratedBy inst:DTRun_Louth_S2_2035 ;
+    sosa:hasSimpleResult 214.3 ;
+    nedt:derivedUnder inst:Scenario_S2_2035 ;
+    nedt:evaluatesCounty inst:County_Louth ;
+    nedt:evaluatesYear "2035"^^xsd:gYear .
+
+inst:Period_1971_1990 a nedt:ConstructionPeriod ;
+    rdfs:label "1971-1990"@en .
+
+inst:Period_post2011 a nedt:ConstructionPeriod ;
+    rdfs:label "post-2011"@en .
+
+inst:RN_Louth_0412_2035 a nedt:ReinforcementNeed ;
+    nedt:breachHours 127 ;
+    nedt:derivedUnder inst:Scenario_S2_2035 ;
+    nedt:evaluatesYear "2035"^^xsd:gYear ;
+    nedt:firstBreachYear "2033"^^xsd:gYear ;
+    nedt:hasKPIEvaluatedObject inst:LV_Louth_0412 .
+
+inst:SCR_SD_B2_post2011_S2_2035 a nedt:SelfConsumptionRatio ;
+    sosa:hasSimpleResult 0.52 ;
+    nedt:derivedUnder inst:Scenario_S2_2035 ;
+    nedt:hasKPIEvaluatedObject inst:PV_SD_B2_post2011_4kWp .
+
+inst:SP_HP_TH_D1_2035 a nedt:ScenarioParameter ;
+    rdfs:label "HP uptake"@en ;
+    prov:wasDerivedFrom inst:Assumption_CAP_HP ;
+    nedt:forArchetype inst:Arch_TH_D1_1971 ;
+    nedt:forYear "2035"^^xsd:gYear ;
+    nedt:uptakeValue 0.40 .
+
+inst:SP_PV_SD_2035 a nedt:ScenarioParameter ;
+    rdfs:label "PV installed kWp"@en ;
+    nedt:forArchetype inst:Arch_SD_B2_post2011 ;
+    nedt:forYear "2035"^^xsd:gYear ;
+    nedt:uptakeValue 4.0 .
+
+inst:Assumption_CAP_HP a nedt:ScenarioAssumption ;
+    rdfs:label "CAP 2024 HP uptake target (Ch. 7)"@en .
+
+inst:PV_SD_B2_post2011_4kWp a nedt:PVSystem ;
+    nedt:installedCapacity_kWp 4.0 .
+
+inst:Scenario_S2_2035 a nedt:Scenario ;
+    rdfs:label "S2_2035"@en ;
+    nedt:hasScenarioParameter inst:SP_HP_TH_D1_2035,
+        inst:SP_PV_SD_2035 .
+

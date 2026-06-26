@@ -1,0 +1,655 @@
+@prefix nedt:  <https://example.org/nedt#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix ssn:  <http://www.w3.org/ns/ssn/> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix om:   <http://www.ontology-of-units-of-measure.org/resource/om-2/> .
+@prefix geo:     <http://www.opengis.net/ont/geosparql#> .
+@prefix bot:     <https://w3id.org/bot#> .
+@prefix saragon: <https://w3id.org/saragon#> .
+@prefix osi:     <https://example.org/osi#> .
+@prefix gd:      <https://example.org/geodirectory#> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+
+# -----------------------------------------------------------------
+# Layer annotation — flags whether a class is part of the existing
+# shared KG framework (Hoare et al. 2026; EC3 paper) or is a new
+# contribution from this DT model (Sood / Trials_andthen_intoMAIN).
+# -----------------------------------------------------------------
+nedt:layer  a owl:AnnotationProperty ;
+    rdfs:label "contribution layer"@en ;
+    rdfs:comment "One of: 'core-KG-framework' (exists in the utility-aware KG of Hoare et al. 2026 and associated standard ontologies such as BOT / SARAGON / GeoDirectory / OSI) or 'DT-model-extension' (contributed by this National Energy Digital Twin)."@en .
+
+#############################################################
+#  Ontology metadata
+#############################################################
+
+<https://example.org/nedt>
+    a owl:Ontology ;
+    dct:title      "National Energy Digital Twin (NEDT) Ontology"@en ;
+    dct:creator    "Divyanshu Sood" ,
+                   "Sharon Coffee" ,
+                   "James O'Donnell" ;
+    dct:description "An OWL ontology describing building archetypes, hourly energy profiles, LV-network attribution, scenarios (including rooftop-PV adoption), KPI evaluation and visualisation components of the National Energy Digital Twin (NEDT) for Ireland."@en ;
+    dct:issued     "2026-04-20"^^xsd:date ;
+    dct:modified   "2026-04-22"^^xsd:date ;
+    owl:versionInfo "1.2.0" ;
+    rdfs:seeAlso   <https://www.w3.org/ns/ssn/> ,
+                   <https://www.w3.org/2006/time> ,
+                   <http://www.ontology-of-units-of-measure.org/resource/om-2/> ;
+    skos:note "Structurally aligned with Li et al. (2019) EM-KPI ontology and reuses SSN/SOSA for observations, OWL-Time for temporal intervals, OM-2 for units and GeoSPARQL for spatial geometries."@en .
+
+
+#############################################################
+#  MODULE 1 — KPI
+#############################################################
+
+nedt:Stakeholder          a owl:Class ; rdfs:label "Stakeholder"@en ;
+    rdfs:comment "An actor that defines performance goals for the digital twin (e.g., DSO, council, policy maker)." .
+nedt:PerformanceGoal      a owl:Class ; rdfs:label "Performance Goal"@en .
+nedt:KPI                  a owl:Class ; rdfs:label "Key Performance Indicator"@en .
+nedt:StrategicKPI         a owl:Class ; rdfs:subClassOf nedt:KPI ; rdfs:label "Strategic KPI"@en .
+nedt:TacticalKPI          a owl:Class ; rdfs:subClassOf nedt:KPI ; rdfs:label "Tactical KPI"@en .
+nedt:OperationalKPI       a owl:Class ; rdfs:subClassOf nedt:KPI ; rdfs:label "Operational KPI"@en .
+nedt:KPIEvaluatedObject   a owl:Class ; rdfs:label "KPI Evaluated Object"@en ;
+    rdfs:comment "Anchor class for whatever a KPI evaluates: County, LV Station, Archetype, or Scenario." .
+nedt:KPICalculation       a owl:Class ; rdfs:subClassOf ssn:Procedure ; rdfs:label "KPI Calculation"@en .
+nedt:KPIValue             a owl:Class ; rdfs:subClassOf ssn:ObservationValue ; rdfs:label "KPI Value"@en .
+nedt:DatumSource          a owl:Class ; rdfs:label "Datum Source"@en ;
+    rdfs:comment "A bound input dataset (CSV, parquet, GeoJSON, shapefile) that provides observations to a KPI calculation." .
+
+nedt:hasPerformanceGoal   a owl:ObjectProperty ; rdfs:domain nedt:Stakeholder ; rdfs:range nedt:PerformanceGoal .
+nedt:hasAssociatedKPI     a owl:ObjectProperty ; rdfs:domain nedt:PerformanceGoal ; rdfs:range nedt:KPI .
+nedt:hasKPIEvaluatedObject a owl:ObjectProperty ; rdfs:domain nedt:KPI ; rdfs:range nedt:KPIEvaluatedObject .
+nedt:hasCalculation       a owl:ObjectProperty ; rdfs:domain nedt:KPI ; rdfs:range nedt:KPICalculation .
+nedt:hasEvalTimeStep      a owl:ObjectProperty ; rdfs:domain nedt:KPICalculation ; rdfs:range time:Interval .
+nedt:hasDisaggregation    a owl:ObjectProperty ; rdfs:domain nedt:StrategicKPI ; rdfs:range nedt:KPI .
+nedt:isProvidedBy         a owl:ObjectProperty ; rdfs:domain nedt:DatumSource ; rdfs:range ssn:Observation .
+nedt:hasKPIDefinition     a owl:DatatypeProperty ; rdfs:domain nedt:KPI ; rdfs:range xsd:string .
+
+
+#############################################################
+#  MODULE 2 — Archetype
+#############################################################
+
+nedt:Archetype            a owl:Class ; rdfs:label "Building Archetype"@en ;
+    rdfs:comment "A canonical residential dwelling category identified by five descriptors: BuildType × BER × Occupancy × HeatingSystem × WeatherClassification." .
+nedt:ArchetypeDescriptor  a owl:Class ; rdfs:label "Archetype Descriptor"@en .
+nedt:ArchetypeCount       a owl:Class ; rdfs:subClassOf ssn:ObservationValue ; rdfs:label "Archetype Count"@en ;
+    rdfs:comment "Number of dwellings of a given archetype in a given county and scenario variant (original, EV, NoEV, PV)." .
+nedt:ProfileKey           a owl:Class ; rdfs:label "Profile Key"@en .
+nedt:BERFallbackRule      a owl:Class ; rdfs:label "BER Fallback Rule"@en ;
+    rdfs:comment "Substitution rule used when no direct profile exists for a BER letter (e.g., F/G folded into E)." .
+nedt:TransitionKey        a owl:Class ; rdfs:label "Transition Key"@en .
+
+nedt:hasDescriptor        a owl:ObjectProperty ; rdfs:domain nedt:Archetype ; rdfs:range nedt:ArchetypeDescriptor .
+nedt:hasCount             a owl:ObjectProperty ; rdfs:domain nedt:Archetype ; rdfs:range nedt:ArchetypeCount .
+nedt:hasBERFallback       a owl:ObjectProperty ; rdfs:domain nedt:Archetype ; rdfs:range nedt:BERFallbackRule .
+nedt:hasTransitionKey     a owl:ObjectProperty ; rdfs:domain nedt:Archetype ; rdfs:range nedt:TransitionKey .
+nedt:inCounty             a owl:ObjectProperty ; rdfs:domain nedt:ArchetypeCount ; rdfs:range nedt:County .
+
+
+#############################################################
+#  MODULE 3 — Scenario (HP, EV, retrofit, PV)
+#############################################################
+
+nedt:Scenario             a owl:Class ; rdfs:label "Scenario"@en .
+nedt:HPScenario           a owl:Class ; rdfs:subClassOf nedt:Scenario ; rdfs:label "Heat-Pump Scenario"@en .
+nedt:EVScenario           a owl:Class ; rdfs:subClassOf nedt:Scenario ; rdfs:label "EV Scenario"@en .
+nedt:EVMode               a owl:Class ; rdfs:label "EV Charging Mode"@en ;
+    rdfs:comment "Controlled charging strategy: uncontrolled / tier-3 / tier-4 / V1H / V2H." .
+nedt:HPTransition         a owl:Class ; rdfs:label "Heat-Pump Transition"@en .
+nedt:TransitionLedger     a owl:Class ; rdfs:label "Transition Ledger"@en ;
+    rdfs:comment "Record of how dwellings migrate between heating systems or BER levels under a scenario." .
+nedt:LargestRemainderAlloc a owl:Class ; rdfs:subClassOf ssn:Procedure ; rdfs:label "Largest-Remainder Allocation"@en .
+
+nedt:modifies             a owl:ObjectProperty ; rdfs:domain nedt:Scenario ; rdfs:range nedt:ArchetypeCount .
+nedt:hasTransition        a owl:ObjectProperty ; rdfs:domain nedt:Scenario ; rdfs:range nedt:HPTransition .
+nedt:hasMode              a owl:ObjectProperty ; rdfs:domain nedt:EVScenario ; rdfs:range nedt:EVMode .
+nedt:allocatedBy          a owl:ObjectProperty ; rdfs:domain nedt:TransitionLedger ; rdfs:range nedt:LargestRemainderAlloc .
+nedt:recordsIn            a owl:ObjectProperty ; rdfs:domain nedt:Scenario ; rdfs:range nedt:TransitionLedger .
+
+
+#############################################################
+#  MODULE 4 — Energy Load
+#############################################################
+
+nedt:EnergyLoad           a owl:Class ; rdfs:label "Energy Load"@en .
+nedt:ElectricLoad         a owl:Class ; rdfs:subClassOf nedt:EnergyLoad ; rdfs:label "Electric Load"@en .
+nedt:HeatLoad             a owl:Class ; rdfs:subClassOf nedt:EnergyLoad ; rdfs:label "Heat Load"@en .
+nedt:CO2Emission          a owl:Class ; rdfs:subClassOf ssn:ObservationValue ; rdfs:label "CO2 Emission"@en .
+nedt:LoadCalculation      a owl:Class ; rdfs:subClassOf ssn:Procedure ; rdfs:label "Load Calculation"@en .
+nedt:LoadMetric           a owl:Class ; rdfs:subClassOf ssn:ObservationValue ; rdfs:label "Load Metric"@en .
+nedt:HourlyProfile        a owl:Class ; rdfs:label "Hourly Profile"@en ;
+    rdfs:comment "An 8760-hour time-series observation attached to an archetype or aggregated entity." .
+nedt:NexsysProfile        a owl:Class ; rdfs:subClassOf nedt:HourlyProfile ; rdfs:label "Nexsys Profile"@en .
+
+nedt:computesLoad         a owl:ObjectProperty ; rdfs:domain nedt:LoadCalculation ; rdfs:range nedt:EnergyLoad .
+nedt:usesProfile          a owl:ObjectProperty ; rdfs:domain nedt:LoadCalculation ; rdfs:range nedt:HourlyProfile .
+nedt:usesNexsys           a owl:ObjectProperty ; rdfs:domain nedt:EnergyLoad ; rdfs:range nedt:NexsysProfile .
+nedt:usesNoEVProfile      a owl:ObjectProperty ; rdfs:domain nedt:EnergyLoad ; rdfs:range nedt:NexsysProfile .
+nedt:hasCO2               a owl:ObjectProperty ; rdfs:domain nedt:EnergyLoad ; rdfs:range nedt:CO2Emission .
+nedt:hasElec              a owl:ObjectProperty ; rdfs:domain nedt:EnergyLoad ; rdfs:range nedt:ElectricLoad .
+nedt:hasHeat              a owl:ObjectProperty ; rdfs:domain nedt:EnergyLoad ; rdfs:range nedt:HeatLoad .
+nedt:hasEV                a owl:ObjectProperty ; rdfs:domain nedt:ElectricLoad ; rdfs:range nedt:EVScenario .
+nedt:hasHP                a owl:ObjectProperty ; rdfs:domain nedt:ElectricLoad ; rdfs:range nedt:HPScenario .
+
+
+#############################################################
+#  MODULE 5 — LV Network
+#############################################################
+
+nedt:LVStation            a owl:Class ; rdfs:label "LV Substation"@en ;
+    rdfs:comment "A low-voltage distribution substation (ESB Networks). Each dwelling is assigned to exactly one station via hull polygon." .
+nedt:HullPolygon          a owl:Class ; rdfs:subClassOf geo:Geometry ; rdfs:label "Hull Polygon"@en .
+nedt:StationCapacity      a owl:Class ; rdfs:subClassOf ssn:ObservationValue ; rdfs:label "Station Capacity"@en .
+nedt:StationLoad          a owl:Class ; rdfs:subClassOf nedt:ElectricLoad ; rdfs:label "Station Load"@en .
+nedt:Utilisation          a owl:Class ; rdfs:subClassOf ssn:ObservationValue ; rdfs:label "Utilisation"@en .
+nedt:UtilisationStatus    a owl:Class ; rdfs:label "Utilisation Status"@en ;
+    rdfs:comment "Green / yellow / red-maroon exceedance band." .
+nedt:BuildingShare        a owl:Class ; rdfs:label "Building Share"@en .
+
+nedt:hasHull              a owl:ObjectProperty ; rdfs:domain nedt:LVStation ; rdfs:range nedt:HullPolygon .
+nedt:hasCapacity          a owl:ObjectProperty ; rdfs:domain nedt:LVStation ; rdfs:range nedt:StationCapacity .
+nedt:hasLoad              a owl:ObjectProperty ; rdfs:domain nedt:LVStation ; rdfs:range nedt:StationLoad .
+nedt:hasUtilisation       a owl:ObjectProperty ; rdfs:domain nedt:LVStation ; rdfs:range nedt:Utilisation .
+nedt:hasStatus            a owl:ObjectProperty ; rdfs:domain nedt:Utilisation ; rdfs:range nedt:UtilisationStatus .
+nedt:hasBldgShare         a owl:ObjectProperty ; rdfs:domain nedt:LVStation ; rdfs:range nedt:BuildingShare .
+
+
+#############################################################
+#  MODULE 6 — Attribution
+#############################################################
+
+nedt:OverloadedStation    a owl:Class ; rdfs:subClassOf nedt:LVStation ; rdfs:label "Overloaded Station"@en .
+nedt:OverloadAttribution  a owl:Class ; rdfs:label "Overload Attribution"@en .
+nedt:ContribRank          a owl:Class ; rdfs:label "Contribution Rank"@en .
+nedt:DominantDriver       a owl:Class ; rdfs:label "Dominant Driver"@en .
+nedt:RiskTable            a owl:Class ; rdfs:label "Risk Table"@en .
+nedt:StationTransition    a owl:Class ; rdfs:label "Station Transition"@en .
+nedt:TopTransitions       a owl:Class ; rdfs:label "Top Transitions"@en .
+
+nedt:hasAttribution       a owl:ObjectProperty ; rdfs:domain nedt:OverloadedStation ; rdfs:range nedt:OverloadAttribution .
+nedt:ranksBy              a owl:ObjectProperty ; rdfs:domain nedt:OverloadAttribution ; rdfs:range nedt:ContribRank .
+nedt:triggers             a owl:ObjectProperty ; rdfs:domain nedt:Scenario ; rdfs:range nedt:OverloadedStation .
+
+
+#############################################################
+#  MODULE 7 — Heat Density
+#############################################################
+
+nedt:HeatDensityGDF       a owl:Class ; rdfs:label "Heat Density GeoDataFrame"@en .
+nedt:HeatFuelComponent    a owl:Class ; rdfs:label "Heat Fuel Component"@en .
+nedt:HeatDensity          a owl:Class ; rdfs:subClassOf ssn:ObservationValue ; rdfs:label "Heat Density"@en ;
+    rdfs:comment "kWh/m² or equivalent per spatial cell; supports district-heating feasibility analysis." .
+nedt:CountySummary        a owl:Class ; rdfs:label "County Summary"@en .
+
+nedt:hasFuelComponent     a owl:ObjectProperty ; rdfs:domain nedt:HeatDensityGDF ; rdfs:range nedt:HeatFuelComponent .
+nedt:computesDensity      a owl:ObjectProperty ; rdfs:domain nedt:LoadCalculation ; rdfs:range nedt:HeatDensity .
+
+
+#############################################################
+#  MODULE 8 — Visualisation / Report
+#############################################################
+
+nedt:FigCollector         a owl:Class ; rdfs:label "Figure Collector"@en ;
+    rdfs:comment "In-memory buffer that captures matplotlib / Deck.GL / Chart.js output for later assembly into HTML." .
+nedt:DeckGLMap            a owl:Class ; rdfs:label "Deck.GL Map"@en .
+nedt:ChartJSChart         a owl:Class ; rdfs:label "Chart.js Chart"@en .
+nedt:HTMLReport           a owl:Class ; rdfs:label "HTML Report"@en .
+nedt:ReportSection        a owl:Class ; rdfs:label "Report Section"@en .
+nedt:ColourPalette        a owl:Class ; rdfs:label "Colour Palette"@en .
+nedt:GeoLocation          a owl:Class ; rdfs:subClassOf geo:Feature ; rdfs:label "Geo Location"@en .
+
+nedt:hasDeckMap           a owl:ObjectProperty ; rdfs:domain nedt:HTMLReport ; rdfs:range nedt:DeckGLMap .
+nedt:hasChart             a owl:ObjectProperty ; rdfs:domain nedt:HTMLReport ; rdfs:range nedt:ChartJSChart .
+nedt:hasSections          a owl:ObjectProperty ; rdfs:domain nedt:HTMLReport ; rdfs:range nedt:ReportSection .
+nedt:usePalette           a owl:ObjectProperty ; rdfs:domain nedt:HTMLReport ; rdfs:range nedt:ColourPalette .
+nedt:usesBasemap          a owl:ObjectProperty ; rdfs:domain nedt:DeckGLMap ; rdfs:range nedt:GeoLocation .
+
+
+#############################################################
+#  MODULE 9 — Geography
+#############################################################
+
+nedt:County               a owl:Class ; rdfs:subClassOf geo:Feature ; rdfs:label "County"@en .
+nedt:contains             a owl:ObjectProperty ; rdfs:domain nedt:County ; rdfs:range nedt:LVStation .
+nedt:hasArchetype         a owl:ObjectProperty ; rdfs:domain nedt:County ; rdfs:range nedt:Archetype .
+
+
+#############################################################
+#  MODULE 10 — Rooftop PV  (NEW, v1.0)
+#############################################################
+
+nedt:PVSystem             a owl:Class ; rdfs:label "Rooftop PV System"@en ;
+    rdfs:comment "A dwelling-mounted photovoltaic system characterised by installed capacity (kWp) and generation profile. Apartments are excluded." .
+nedt:PVGenerationProfile  a owl:Class ; rdfs:subClassOf nedt:HourlyProfile ; rdfs:label "PV Generation Profile"@en ;
+    rdfs:comment "Hourly kW generation; empirically collapses to one weather-driven reference shape across archetypes (cosine similarity ≥ 0.96)." .
+nedt:PVReferenceShape     a owl:Class ; rdfs:subClassOf nedt:PVGenerationProfile ; rdfs:label "PV Reference Shape"@en ;
+    rdfs:comment "Normalised 1 kWp shape derived as the mean of all Nexsys PV columns after peak/0.85 normalisation (~1095 kWh/yr)." .
+nedt:PVCapacityBin        a owl:Class ; rdfs:label "PV Capacity Bin"@en ;
+    rdfs:comment "Installed-capacity band (1, 2, 3, 4, 5, 6 kWp) used to discretise the national distribution." .
+nedt:PVCapacityMix        a owl:Class ; rdfs:label "PV Capacity Mix"@en ;
+    rdfs:comment "Probability distribution over PVCapacityBins. Default Irish 2017 reference: 10/47/23/6/11/3%." .
+nedt:PVAdoptionScenario   a owl:Class ; rdfs:subClassOf nedt:Scenario ; rdfs:label "PV Adoption Scenario"@en .
+nedt:SEAIGrantRecord      a owl:Class ; rdfs:subClassOf nedt:DatumSource ; rdfs:label "SEAI Grant Record"@en ;
+    rdfs:comment "Annual count and funded amount of domestic solar PV grants per county from SEAI (2018–2026)." .
+nedt:NetLoad              a owl:Class ; rdfs:subClassOf nedt:ElectricLoad ; rdfs:label "Net Load"@en ;
+    rdfs:comment "Per-dwelling hourly load after PV netting, clamped at zero (no grid export assumed)." .
+nedt:NettingProcedure     a owl:Class ; rdfs:subClassOf ssn:Procedure ; rdfs:label "PV Netting Procedure"@en .
+
+nedt:hasPVSystem          a owl:ObjectProperty ; rdfs:domain nedt:Archetype ; rdfs:range nedt:PVSystem .
+nedt:hasPVProfile         a owl:ObjectProperty ; rdfs:domain nedt:PVSystem ; rdfs:range nedt:PVGenerationProfile .
+nedt:hasCapacityBin       a owl:ObjectProperty ; rdfs:domain nedt:PVSystem ; rdfs:range nedt:PVCapacityBin .
+nedt:hasCapacityMix       a owl:ObjectProperty ; rdfs:domain nedt:PVAdoptionScenario ; rdfs:range nedt:PVCapacityMix .
+nedt:derivedFromGrant     a owl:ObjectProperty ; rdfs:domain nedt:PVAdoptionScenario ; rdfs:range nedt:SEAIGrantRecord .
+nedt:producesNetLoad      a owl:ObjectProperty ; rdfs:domain nedt:NettingProcedure ; rdfs:range nedt:NetLoad .
+nedt:eligibleBER          a owl:DatatypeProperty ; rdfs:domain nedt:PVSystem ; rdfs:range xsd:string ;
+    rdfs:comment "All BER letters A–E admitted; no BER restriction in default deployment." .
+nedt:installedCapacity_kWp a owl:DatatypeProperty ; rdfs:domain nedt:PVSystem ; rdfs:range xsd:decimal .
+nedt:adoptionFraction     a owl:DatatypeProperty ; rdfs:domain nedt:PVAdoptionScenario ; rdfs:range xsd:decimal ;
+    rdfs:comment "Fraction of eligible (non-apartment) dwellings that have PV installed." .
+nedt:grantYear            a owl:DatatypeProperty ; rdfs:domain nedt:SEAIGrantRecord ; rdfs:range xsd:gYear .
+nedt:grantCount           a owl:DatatypeProperty ; rdfs:domain nedt:SEAIGrantRecord ; rdfs:range xsd:integer .
+nedt:grantFundingEUR      a owl:DatatypeProperty ; rdfs:domain nedt:SEAIGrantRecord ; rdfs:range xsd:decimal .
+
+
+#############################################################
+#  Connectors for previously orphan classes
+#############################################################
+
+# Archetype ↔ ProfileKey ↔ NexsysProfile
+nedt:hasProfileKey        a owl:ObjectProperty ; rdfs:domain nedt:Archetype   ; rdfs:range nedt:ProfileKey ;
+    rdfs:label "has profile key"@en .
+nedt:resolvesTo           a owl:ObjectProperty ; rdfs:domain nedt:ProfileKey  ; rdfs:range nedt:NexsysProfile ;
+    rdfs:label "resolves to profile"@en .
+
+# Attribution connectors
+nedt:hasDominantDriver    a owl:ObjectProperty ; rdfs:domain nedt:OverloadAttribution ; rdfs:range nedt:DominantDriver ;
+    rdfs:label "has dominant driver"@en .
+nedt:hasRiskTable         a owl:ObjectProperty ; rdfs:domain nedt:Scenario            ; rdfs:range nedt:RiskTable ;
+    rdfs:label "has risk table"@en .
+nedt:listsStation         a owl:ObjectProperty ; rdfs:domain nedt:RiskTable           ; rdfs:range nedt:OverloadedStation ;
+    rdfs:label "lists overloaded station"@en .
+nedt:hasStationTransition a owl:ObjectProperty ; rdfs:domain nedt:LVStation           ; rdfs:range nedt:StationTransition ;
+    rdfs:label "has station transition"@en .
+nedt:fromScenario         a owl:ObjectProperty ; rdfs:domain nedt:StationTransition   ; rdfs:range nedt:Scenario ;
+    rdfs:label "from scenario"@en .
+nedt:toScenario           a owl:ObjectProperty ; rdfs:domain nedt:StationTransition   ; rdfs:range nedt:Scenario ;
+    rdfs:label "to scenario"@en .
+nedt:hasTopTransitions    a owl:ObjectProperty ; rdfs:domain nedt:Scenario            ; rdfs:range nedt:TopTransitions ;
+    rdfs:label "has top transitions"@en .
+nedt:listsTransition      a owl:ObjectProperty ; rdfs:domain nedt:TopTransitions      ; rdfs:range nedt:StationTransition ;
+    rdfs:label "lists station transition"@en .
+
+# Heat Density connectors
+nedt:hasCountySummary     a owl:ObjectProperty ; rdfs:domain nedt:County              ; rdfs:range nedt:CountySummary ;
+    rdfs:label "has county summary"@en .
+nedt:summarisesDensity    a owl:ObjectProperty ; rdfs:domain nedt:CountySummary       ; rdfs:range nedt:HeatDensityGDF ;
+    rdfs:label "summarises heat density"@en .
+
+# Visualisation connectors
+nedt:collectsChart        a owl:ObjectProperty ; rdfs:domain nedt:FigCollector        ; rdfs:range nedt:ChartJSChart ;
+    rdfs:label "collects chart"@en .
+nedt:collectsMap          a owl:ObjectProperty ; rdfs:domain nedt:FigCollector        ; rdfs:range nedt:DeckGLMap ;
+    rdfs:label "collects map"@en .
+nedt:assemblesReport      a owl:ObjectProperty ; rdfs:domain nedt:FigCollector        ; rdfs:range nedt:HTMLReport ;
+    rdfs:label "assembles report"@en .
+
+
+#############################################################
+#  Cross-module delta and attribution
+#############################################################
+
+nedt:DeltaSeries          a owl:Class ; rdfs:subClassOf nedt:HourlyProfile ; rdfs:label "Delta Series"@en ;
+    rdfs:comment "Scenario − baseline hourly time series; feeds visualisation and attribution." .
+nedt:computesDelta        a owl:ObjectProperty ; rdfs:domain nedt:LoadCalculation ; rdfs:range nedt:DeltaSeries .
+nedt:Tariff               a owl:Class ; rdfs:label "Tariff"@en .
+nedt:hasTariff            a owl:ObjectProperty ; rdfs:domain nedt:ElectricLoad ; rdfs:range nedt:Tariff .
+
+
+#############################################################
+#  Contribution layer annotations
+#  ----------------------------------------------------------
+#  Every nedt: class is tagged with nedt:layer, one of:
+#    - "core-KG-framework"  : present in the shared utility-aware
+#      knowledge-graph backbone (Hoare, Coffee, Sood, Margaria,
+#      O'Donnell, EC3 2026) or re-used directly from BOT /
+#      SARAGON / GeoDirectory / OSI / GeoSPARQL.
+#    - "DT-model-extension" : contributed by this National Energy
+#      Digital Twin (NEDT) on top of that backbone: scenarios,
+#      hourly profile observations, load calculations, overload
+#      attribution, KPIs, heat density, visualisation, rooftop-PV.
+#
+#  owl:equivalentClass / rdfs:seeAlso assertions crosslink the
+#  core-KG nedt: classes to their counterparts in the upstream
+#  shared ontologies so an OWL reasoner can federate the two.
+#############################################################
+
+# ---------- Core KG framework (existing; Hoare et al. 2026) ----------
+
+nedt:County              nedt:layer "core-KG-framework"@en ;
+    rdfs:seeAlso osi:County , gd:GeoAddress .
+nedt:LVStation           nedt:layer "core-KG-framework"@en ;
+    owl:equivalentClass saragon:Transformer ;
+    rdfs:seeAlso saragon:DistributionNode .
+nedt:HullPolygon         nedt:layer "core-KG-framework"@en ;
+    rdfs:seeAlso geo:Geometry .
+nedt:Archetype           nedt:layer "core-KG-framework"@en ;
+    rdfs:seeAlso bot:Building , gd:Building .
+nedt:ArchetypeDescriptor nedt:layer "core-KG-framework"@en .
+nedt:GeoLocation         nedt:layer "core-KG-framework"@en ;
+    rdfs:seeAlso geo:Feature .
+nedt:BuildingShare       nedt:layer "core-KG-framework"@en ;
+    rdfs:seeAlso saragon:hasServiceArea .
+nedt:Stakeholder         nedt:layer "core-KG-framework"@en .
+nedt:DatumSource         nedt:layer "core-KG-framework"@en .
+
+# ---------- DT model extension (this work) ----------
+
+# KPI module
+nedt:PerformanceGoal     nedt:layer "DT-model-extension"@en .
+nedt:KPI                 nedt:layer "DT-model-extension"@en .
+nedt:StrategicKPI        nedt:layer "DT-model-extension"@en .
+nedt:TacticalKPI         nedt:layer "DT-model-extension"@en .
+nedt:OperationalKPI      nedt:layer "DT-model-extension"@en .
+nedt:KPIEvaluatedObject  nedt:layer "DT-model-extension"@en .
+nedt:KPICalculation      nedt:layer "DT-model-extension"@en .
+nedt:KPIValue            nedt:layer "DT-model-extension"@en .
+
+# Archetype observations / keys
+nedt:ArchetypeCount      nedt:layer "DT-model-extension"@en .
+nedt:ProfileKey          nedt:layer "DT-model-extension"@en .
+nedt:BERFallbackRule     nedt:layer "DT-model-extension"@en .
+nedt:TransitionKey       nedt:layer "DT-model-extension"@en .
+
+# Scenario module
+nedt:Scenario            nedt:layer "DT-model-extension"@en .
+nedt:HPScenario          nedt:layer "DT-model-extension"@en .
+nedt:EVScenario          nedt:layer "DT-model-extension"@en .
+nedt:EVMode              nedt:layer "DT-model-extension"@en .
+nedt:HPTransition        nedt:layer "DT-model-extension"@en .
+nedt:TransitionLedger    nedt:layer "DT-model-extension"@en .
+nedt:LargestRemainderAlloc nedt:layer "DT-model-extension"@en .
+
+# Energy load module
+nedt:EnergyLoad          nedt:layer "DT-model-extension"@en .
+nedt:ElectricLoad        nedt:layer "DT-model-extension"@en .
+nedt:HeatLoad            nedt:layer "DT-model-extension"@en .
+nedt:CO2Emission         nedt:layer "DT-model-extension"@en .
+nedt:LoadCalculation     nedt:layer "DT-model-extension"@en .
+nedt:LoadMetric          nedt:layer "DT-model-extension"@en .
+nedt:HourlyProfile       nedt:layer "DT-model-extension"@en .
+nedt:NexsysProfile       nedt:layer "DT-model-extension"@en .
+
+# LV network observations
+nedt:StationCapacity     nedt:layer "DT-model-extension"@en .
+nedt:StationLoad         nedt:layer "DT-model-extension"@en .
+nedt:Utilisation         nedt:layer "DT-model-extension"@en .
+nedt:UtilisationStatus   nedt:layer "DT-model-extension"@en .
+
+# Attribution module
+nedt:OverloadedStation   nedt:layer "DT-model-extension"@en .
+nedt:OverloadAttribution nedt:layer "DT-model-extension"@en .
+nedt:ContribRank         nedt:layer "DT-model-extension"@en .
+nedt:DominantDriver      nedt:layer "DT-model-extension"@en .
+nedt:RiskTable           nedt:layer "DT-model-extension"@en .
+nedt:StationTransition   nedt:layer "DT-model-extension"@en .
+nedt:TopTransitions      nedt:layer "DT-model-extension"@en .
+
+# Heat density
+nedt:HeatDensityGDF      nedt:layer "DT-model-extension"@en .
+nedt:HeatFuelComponent   nedt:layer "DT-model-extension"@en .
+nedt:HeatDensity         nedt:layer "DT-model-extension"@en .
+nedt:CountySummary       nedt:layer "DT-model-extension"@en .
+
+# Visualisation
+nedt:FigCollector        nedt:layer "DT-model-extension"@en .
+nedt:DeckGLMap           nedt:layer "DT-model-extension"@en .
+nedt:ChartJSChart        nedt:layer "DT-model-extension"@en .
+nedt:HTMLReport          nedt:layer "DT-model-extension"@en .
+nedt:ReportSection       nedt:layer "DT-model-extension"@en .
+nedt:ColourPalette       nedt:layer "DT-model-extension"@en .
+
+# Rooftop PV module
+nedt:PVSystem            nedt:layer "DT-model-extension"@en .
+nedt:PVGenerationProfile nedt:layer "DT-model-extension"@en .
+nedt:PVReferenceShape    nedt:layer "DT-model-extension"@en .
+nedt:PVCapacityBin       nedt:layer "DT-model-extension"@en .
+nedt:PVCapacityMix       nedt:layer "DT-model-extension"@en .
+nedt:PVAdoptionScenario  nedt:layer "DT-model-extension"@en .
+nedt:SEAIGrantRecord     nedt:layer "DT-model-extension"@en .
+nedt:NetLoad             nedt:layer "DT-model-extension"@en .
+nedt:NettingProcedure    nedt:layer "DT-model-extension"@en .
+
+# Cross-module
+nedt:DeltaSeries         nedt:layer "DT-model-extension"@en .
+nedt:Tariff              nedt:layer "DT-model-extension"@en .
+
+
+#############################################################
+#  v1.1 EXTENSIONS — competency-question driven additions
+#  ----------------------------------------------------------
+#  18 new classes + 14 new properties introduced to answer
+#  CQ1-CQ12 (see DT_ontology_paper.md §8).
+#
+#  Refinement vs first draft:
+#    * nedt:UptakeFraction collapsed into the datatype property
+#      nedt:uptakeValue on nedt:ScenarioParameter (flatter ABox).
+#    * nedt:EndUseContribution subclassed under the existing
+#      nedt:ContribRank instead of a sibling class.
+#    * nedt:evaluatesCounty / nedt:evaluatesYear domain moved
+#      from nedt:KPI to nedt:KPIValue to match nedt:derivedUnder
+#      (scope attaches to the measurement, not the definition).
+#
+#  Provenance (CQ12) reuses PROV-O directly; nedt:DTRun,
+#  nedt:SensitivityRun and nedt:ScenarioAssumption are typing
+#  subclasses only.
+#############################################################
+
+# ---- Typed archetype descriptors (CQ1) -------------------
+nedt:BERRating            a owl:Class ; rdfs:subClassOf nedt:ArchetypeDescriptor ;
+    rdfs:label "BER Rating"@en ;
+    rdfs:comment "Building Energy Rating letter (A1-G) assigned to a dwelling archetype by SEAI."@en .
+nedt:DwellingType         a owl:Class ; rdfs:subClassOf nedt:ArchetypeDescriptor ;
+    rdfs:label "Dwelling Type"@en ;
+    rdfs:comment "Structural dwelling type: detached, semi-detached, terrace, end-of-terrace, apartment."@en .
+nedt:ConstructionPeriod   a owl:Class ; rdfs:subClassOf nedt:ArchetypeDescriptor ;
+    rdfs:label "Construction Period"@en ;
+    rdfs:comment "CSO / SEAI construction-period band (pre-1919, 1919-1945, 1946-1970, 1971-1990, 1991-2010, post-2011)."@en .
+
+# ---- End-use load decomposition (CQ2, CQ4, CQ6) ----------
+nedt:EndUseLoad           a owl:Class ; rdfs:subClassOf nedt:EnergyLoad ;
+    rdfs:label "End-Use Load"@en ;
+    rdfs:comment "A load component tagged by end-use (space_heat, dhw, appliance, lighting, cooking, ev, hp_replace). Enables decomposition of the archetype profile into interpretable components."@en .
+
+# ---- Scenario parameterisation (CQ3) ---------------------
+nedt:ScenarioParameter    a owl:Class ;
+    rdfs:label "Scenario Parameter"@en ;
+    rdfs:comment "One numeric parameter of a scenario (HP uptake fraction, EV uptake fraction, PV kWp) bound to a single archetype and year. Value carried by nedt:uptakeValue."@en .
+
+# ---- LV aggregation (CQ5) --------------------------------
+nedt:LVAggregation        a owl:Class ; rdfs:subClassOf ssn:Procedure ;
+    rdfs:label "LV Aggregation Procedure"@en ;
+    rdfs:comment "Procedure that sums archetype-level hourly load to the LV-station level via the hull-polygon assignment."@en .
+
+# ---- Overload events & attribution (CQ6, CQ10) -----------
+nedt:OverloadEvent        a owl:Class ;
+    rdfs:label "Overload Event"@en ;
+    rdfs:comment "Single-hour exceedance of an LV station's nameplate capacity in a scenario run."@en .
+nedt:EndUseContribution   a owl:Class ; rdfs:subClassOf nedt:ContribRank ;
+    rdfs:label "End-Use Contribution"@en ;
+    rdfs:comment "Share of an overload event attributable to a specific end-use (HP, EV, PV reverse-flow, baseline)."@en .
+
+# ---- PV self-consumption KPIs (CQ7) ----------------------
+nedt:SelfConsumptionRatio a owl:Class ; rdfs:subClassOf nedt:KPIValue ;
+    rdfs:label "Self-Consumption Ratio"@en ;
+    rdfs:comment "Annual PV self-consumption as a fraction (0-1) of generation used on-site."@en .
+nedt:ExportedEnergy       a owl:Class ; rdfs:subClassOf nedt:KPIValue ;
+    rdfs:label "Exported Energy"@en ;
+    rdfs:comment "Annual PV energy exported to the grid (kWh)."@en .
+nedt:ReversePowerFlowHour a owl:Class ; rdfs:subClassOf nedt:KPIValue ;
+    rdfs:label "Reverse Power-Flow Hour"@en ;
+    rdfs:comment "An hour with negative net flow at the LV transformer (local PV generation exceeds local consumption)."@en .
+
+# ---- County / national KPI scope (CQ8, CQ9, CQ10) --------
+nedt:CoincidentPeak       a owl:Class ; rdfs:subClassOf nedt:KPIValue ;
+    rdfs:label "Coincident Peak"@en ;
+    rdfs:comment "County- or national-level coincident electrical peak (MW) with its time-stamp."@en .
+nedt:CountyKPI            a owl:Class ; rdfs:subClassOf nedt:KPI ;
+    rdfs:label "County KPI"@en ;
+    rdfs:comment "A KPI definition whose values are always scoped to one county (via nedt:evaluatesCounty on the KPIValue)."@en .
+nedt:NationalKPI          a owl:Class ; rdfs:subClassOf nedt:KPI ;
+    rdfs:label "National KPI"@en ;
+    rdfs:comment "A KPI definition whose values are aggregated across all 26 counties."@en .
+nedt:ReinforcementNeed    a owl:Class ; rdfs:subClassOf nedt:KPIValue ;
+    rdfs:label "Reinforcement Need"@en ;
+    rdfs:comment "Flag value carrying first-breach year and annual breach-hours for a station or county."@en .
+
+# ---- Provenance typing (CQ12) ----------------------------
+nedt:DTRun                a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:label "DT Run"@en ;
+    rdfs:comment "A single execution of the digital-twin notebook that produces a bundle of KPIValues. Uses prov:used / prov:generated / prov:wasDerivedFrom directly."@en .
+nedt:SensitivityRun       a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:label "Sensitivity Run"@en ;
+    rdfs:comment "A parameter-sweep execution that ranks scenario parameters by their marginal effect on county peak and CO2."@en .
+nedt:ScenarioAssumption   a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:label "Scenario Assumption"@en ;
+    rdfs:comment "A written or sourced assumption underpinning a scenario parameter (CAP, SEAI, internal expert judgement)."@en .
+
+# ---- New properties --------------------------------------
+nedt:endUse               a owl:DatatypeProperty ; rdfs:domain nedt:EndUseLoad ; rdfs:range xsd:string ;
+    rdfs:label "end-use"@en ;
+    rdfs:comment "Enumerated end-use tag: space_heat | dhw | appliance | lighting | cooking | ev | hp_replace."@en .
+nedt:hasScenarioParameter a owl:ObjectProperty ; rdfs:domain nedt:Scenario ; rdfs:range nedt:ScenarioParameter ;
+    rdfs:label "has scenario parameter"@en .
+nedt:forArchetype         a owl:ObjectProperty ; rdfs:domain nedt:ScenarioParameter ; rdfs:range nedt:Archetype ;
+    rdfs:label "for archetype"@en .
+nedt:forYear              a owl:DatatypeProperty ; rdfs:domain nedt:ScenarioParameter ; rdfs:range xsd:gYear ;
+    rdfs:label "for year"@en .
+nedt:uptakeValue          a owl:DatatypeProperty ; rdfs:domain nedt:ScenarioParameter ; rdfs:range xsd:decimal ;
+    rdfs:label "uptake value"@en ;
+    rdfs:comment "Numeric fraction in [0,1] for HP/EV uptake, or kWp for PV."@en .
+nedt:occursAt             a owl:DatatypeProperty ; rdfs:domain nedt:OverloadEvent ; rdfs:range xsd:dateTime ;
+    rdfs:label "occurs at"@en .
+nedt:overloadMagnitude_kW a owl:DatatypeProperty ; rdfs:domain nedt:OverloadEvent ; rdfs:range xsd:decimal ;
+    rdfs:label "overload magnitude (kW)"@en .
+nedt:attributedToEndUse   a owl:ObjectProperty ; rdfs:domain nedt:EndUseContribution ; rdfs:range nedt:EndUseLoad ;
+    rdfs:label "attributed to end-use"@en .
+nedt:contributionPercent  a owl:DatatypeProperty ; rdfs:domain nedt:EndUseContribution ; rdfs:range xsd:decimal ;
+    rdfs:label "contribution percent"@en ;
+    rdfs:comment "Share 0-100 of the overload attributable to this end-use."@en .
+nedt:evaluatesCounty      a owl:ObjectProperty ; rdfs:domain nedt:KPIValue ; rdfs:range nedt:County ;
+    rdfs:label "evaluates county"@en .
+nedt:evaluatesYear        a owl:DatatypeProperty ; rdfs:domain nedt:KPIValue ; rdfs:range xsd:gYear ;
+    rdfs:label "evaluates year"@en .
+nedt:derivedUnder         a owl:ObjectProperty ; rdfs:domain nedt:KPIValue ; rdfs:range nedt:Scenario ;
+    rdfs:label "derived under scenario"@en .
+nedt:firstBreachYear      a owl:DatatypeProperty ; rdfs:domain nedt:ReinforcementNeed ; rdfs:range xsd:gYear ;
+    rdfs:label "first breach year"@en .
+nedt:breachHours          a owl:DatatypeProperty ; rdfs:domain nedt:ReinforcementNeed ; rdfs:range xsd:integer ;
+    rdfs:label "breach hours per year"@en .
+
+# ---- Layer annotations (all DT-model-extension) ----------
+nedt:BERRating            nedt:layer "DT-model-extension"@en .
+nedt:DwellingType         nedt:layer "DT-model-extension"@en .
+nedt:ConstructionPeriod   nedt:layer "DT-model-extension"@en .
+nedt:EndUseLoad           nedt:layer "DT-model-extension"@en .
+nedt:ScenarioParameter    nedt:layer "DT-model-extension"@en .
+nedt:LVAggregation        nedt:layer "DT-model-extension"@en .
+nedt:OverloadEvent        nedt:layer "DT-model-extension"@en .
+nedt:EndUseContribution   nedt:layer "DT-model-extension"@en .
+nedt:SelfConsumptionRatio nedt:layer "DT-model-extension"@en .
+nedt:ExportedEnergy       nedt:layer "DT-model-extension"@en .
+nedt:ReversePowerFlowHour nedt:layer "DT-model-extension"@en .
+nedt:CoincidentPeak       nedt:layer "DT-model-extension"@en .
+nedt:CountyKPI            nedt:layer "DT-model-extension"@en .
+nedt:NationalKPI          nedt:layer "DT-model-extension"@en .
+nedt:ReinforcementNeed    nedt:layer "DT-model-extension"@en .
+nedt:DTRun                nedt:layer "DT-model-extension"@en .
+nedt:SensitivityRun       nedt:layer "DT-model-extension"@en .
+nedt:ScenarioAssumption   nedt:layer "DT-model-extension"@en .
+
+#############################################################
+#  v1.2.0 — Heat-density & flexibility extension (CQ13–CQ15)
+#  ----------------------------------------------------------
+#  Added 2026-04-22 to answer three supervisor-priority CQs:
+#     CQ13  district-heating viability
+#     CQ14  group / community heating candidates
+#     CQ15  LV-node flexibility & demand-response capacity
+#############################################################
+
+# ---- Classes ---------------------------------------------
+nedt:HeatDensity a owl:Class ;
+    rdfs:subClassOf sosa:ObservableProperty ;
+    rdfs:label "Heat demand density"@en ;
+    rdfs:comment "Annual thermal demand per unit floor or land area (kWh·m⁻²·yr⁻¹) evaluated at a grid cell, SA cluster or dwelling group."@en .
+
+nedt:ThermalDemandCluster a owl:Class ;
+    rdfs:label "Thermal-demand cluster"@en ;
+    rdfs:comment "A contiguous group of archetypes / cells whose aggregated HeatDensity exceeds a threshold, produced by the DH-viability procedure."@en ;
+    rdfs:seeAlso bot:Zone .
+
+nedt:DHViabilityKPI a owl:Class ;
+    rdfs:subClassOf nedt:KPIValue ;
+    rdfs:label "District-heating viability KPI"@en ;
+    rdfs:comment "Carries the boolean viability verdict and the underlying heat density for one cluster / county / scenario / year."@en .
+
+nedt:GroupHeatingCandidate a owl:Class ;
+    rdfs:subClassOf nedt:ThermalDemandCluster ;
+    rdfs:label "Group / community heating candidate"@en ;
+    rdfs:comment "A ThermalDemandCluster in the 50–120 kWh·m⁻²·yr⁻¹ band whose compactness and dwelling-mix make it suitable for a shared-plant scheme."@en .
+
+nedt:FlexibleLoad a owl:Class ;
+    rdfs:subClassOf nedt:EndUseLoad ;
+    rdfs:label "Flexible load"@en ;
+    rdfs:comment "The subset of an EndUseLoad whose timing can be shifted inside a demand-response window (typically HP, EV and HP_replace end-uses)."@en .
+
+nedt:FlexibilityKPI a owl:Class ;
+    rdfs:subClassOf nedt:KPIValue ;
+    rdfs:label "LV-node flexibility KPI"@en ;
+    rdfs:comment "Shiftable kW at an LV station under a stated demand-response window and scenario / year."@en .
+
+nedt:DemandResponseCapacity a owl:Class ;
+    rdfs:subClassOf nedt:KPIValue ;
+    rdfs:label "Demand-response capacity"@en ;
+    rdfs:comment "Head-room (kW) available to a DR programme at an LV node after accounting for comfort and SOC constraints."@en .
+
+# ---- Properties ------------------------------------------
+nedt:heatDemand_kWh_per_m2_yr a owl:DatatypeProperty ;
+    rdfs:domain nedt:HeatDensity ; rdfs:range xsd:decimal ;
+    rdfs:label "heat demand (kWh/m²·yr)"@en .
+
+nedt:viabilityThreshold_kWh_per_m2_yr a owl:DatatypeProperty ;
+    rdfs:domain nedt:DHViabilityKPI ; rdfs:range xsd:decimal ;
+    rdfs:label "DH viability threshold (kWh/m²·yr)"@en .
+
+nedt:isDHViable a owl:DatatypeProperty ;
+    rdfs:domain nedt:DHViabilityKPI ; rdfs:range xsd:boolean ;
+    rdfs:label "is DH viable"@en .
+
+nedt:clusterCompactness a owl:DatatypeProperty ;
+    rdfs:domain nedt:ThermalDemandCluster ; rdfs:range xsd:decimal ;
+    rdfs:label "cluster compactness ratio (0–1)"@en .
+
+nedt:flexibilityKW a owl:DatatypeProperty ;
+    rdfs:domain nedt:FlexibilityKPI ; rdfs:range xsd:decimal ;
+    rdfs:label "shiftable load (kW)"@en .
+
+nedt:controllableFraction a owl:DatatypeProperty ;
+    rdfs:domain nedt:FlexibleLoad ; rdfs:range xsd:decimal ;
+    rdfs:label "controllable fraction (0–1)"@en .
+
+# ---- Layer annotations (all DT-model-extension) ----------
+nedt:HeatDensity              nedt:layer "DT-model-extension"@en .
+nedt:ThermalDemandCluster     nedt:layer "DT-model-extension"@en .
+nedt:DHViabilityKPI           nedt:layer "DT-model-extension"@en .
+nedt:GroupHeatingCandidate    nedt:layer "DT-model-extension"@en .
+nedt:FlexibleLoad             nedt:layer "DT-model-extension"@en .
+nedt:FlexibilityKPI           nedt:layer "DT-model-extension"@en .
+nedt:DemandResponseCapacity   nedt:layer "DT-model-extension"@en .

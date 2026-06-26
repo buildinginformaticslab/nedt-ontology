@@ -1,0 +1,170 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix nedt:  <https://example.org/nedt#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+
+#############################################################
+#  SHACL shapes for NEDT v1.1 extension classes
+#  ----------------------------------------------------------
+#  Each shape encodes the minimum viable contract ("IDS-style
+#  delivery specification") for an instance of a v1.1 class.
+#  Validated with pySHACL against DT_kg_full.ttl.
+#############################################################
+
+# ---- ScenarioParameter ------------------------------------
+nedt:ScenarioParameterShape  a sh:NodeShape ;
+    sh:targetClass nedt:ScenarioParameter ;
+    sh:property [ sh:path nedt:forArchetype ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:class nedt:Archetype ;
+                  sh:message "ScenarioParameter must have exactly one nedt:forArchetype." ] ;
+    sh:property [ sh:path nedt:forYear ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:gYear ;
+                  sh:message "ScenarioParameter must have exactly one nedt:forYear (xsd:gYear)." ] ;
+    sh:property [ sh:path nedt:uptakeValue ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:decimal ;
+                  sh:message "ScenarioParameter must have exactly one nedt:uptakeValue (xsd:decimal)." ] .
+
+# ---- EndUseLoad -------------------------------------------
+nedt:EndUseLoadShape  a sh:NodeShape ;
+    sh:targetClass nedt:EndUseLoad ;
+    sh:property [ sh:path nedt:endUse ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:in ( "space_heat" "dhw" "appliance" "lighting"
+                          "cooking" "ev" "hp_replace" ) ;
+                  sh:message "EndUseLoad.endUse must be one of the seven enum values." ] .
+
+# ---- OverloadEvent ----------------------------------------
+nedt:OverloadEventShape  a sh:NodeShape ;
+    sh:targetClass nedt:OverloadEvent ;
+    sh:property [ sh:path nedt:occursAt ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:dateTime ;
+                  sh:message "OverloadEvent must carry exactly one nedt:occursAt (xsd:dateTime)." ] ;
+    sh:property [ sh:path nedt:overloadMagnitude_kW ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:decimal ; sh:minInclusive 0 ;
+                  sh:message "OverloadEvent.overloadMagnitude_kW must be a non-negative decimal." ] .
+
+# ---- EndUseContribution -----------------------------------
+nedt:EndUseContributionShape  a sh:NodeShape ;
+    sh:targetClass nedt:EndUseContribution ;
+    sh:property [ sh:path nedt:attributedToEndUse ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:class nedt:EndUseLoad ;
+                  sh:message "EndUseContribution must reference exactly one nedt:EndUseLoad." ] ;
+    sh:property [ sh:path nedt:contributionPercent ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:decimal ;
+                  sh:minInclusive 0 ; sh:maxInclusive 100 ;
+                  sh:message "EndUseContribution.contributionPercent must be in [0,100]." ] .
+
+# ---- CoincidentPeak ---------------------------------------
+nedt:CoincidentPeakShape  a sh:NodeShape ;
+    sh:targetClass nedt:CoincidentPeak ;
+    sh:property [ sh:path nedt:derivedUnder ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:class nedt:Scenario ;
+                  sh:message "CoincidentPeak must cite exactly one nedt:derivedUnder scenario." ] ;
+    sh:property [ sh:path nedt:evaluatesYear ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:gYear ;
+                  sh:message "CoincidentPeak must cite exactly one nedt:evaluatesYear." ] ;
+    sh:or (
+        [ sh:property [ sh:path nedt:evaluatesCounty ; sh:minCount 1 ;
+                        sh:class nedt:County ] ]
+        [ sh:property [ sh:path nedt:evaluatesYear  ; sh:minCount 1 ] ]
+    ) ;
+    sh:property [ sh:path sosa:hasSimpleResult ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:decimal ;
+                  sh:message "CoincidentPeak must carry exactly one sosa:hasSimpleResult (MW)." ] .
+
+# ---- ReinforcementNeed ------------------------------------
+nedt:ReinforcementNeedShape  a sh:NodeShape ;
+    sh:targetClass nedt:ReinforcementNeed ;
+    sh:property [ sh:path nedt:firstBreachYear ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:gYear ;
+                  sh:message "ReinforcementNeed must have exactly one nedt:firstBreachYear." ] ;
+    sh:property [ sh:path nedt:breachHours ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:integer ; sh:minInclusive 0 ;
+                  sh:message "ReinforcementNeed.breachHours must be a non-negative integer." ] ;
+    sh:property [ sh:path nedt:evaluatesYear ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:gYear ] ;
+    sh:property [ sh:path nedt:derivedUnder ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:class nedt:Scenario ] .
+
+# ---- SelfConsumptionRatio ---------------------------------
+nedt:SelfConsumptionRatioShape  a sh:NodeShape ;
+    sh:targetClass nedt:SelfConsumptionRatio ;
+    sh:property [ sh:path sosa:hasSimpleResult ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:decimal ;
+                  sh:minInclusive 0 ; sh:maxInclusive 1 ;
+                  sh:message "SelfConsumptionRatio must be in [0,1]." ] ;
+    sh:property [ sh:path nedt:derivedUnder ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+# ---- DTRun (provenance contract) --------------------------
+nedt:DTRunShape  a sh:NodeShape ;
+    sh:targetClass nedt:DTRun ;
+    sh:property [ sh:path prov:used ; sh:minCount 1 ;
+                  sh:message "DTRun must declare at least one prov:used dataset or assumption." ] ;
+    sh:property [ sh:path prov:generated ; sh:minCount 1 ;
+                  sh:message "DTRun must declare at least one prov:generated KPIValue." ] .
+
+# ---- KPIValue scope cardinality ---------------------------
+nedt:KPIValueScopeShape  a sh:NodeShape ;
+    sh:targetClass nedt:KPIValue ;
+    sh:property [ sh:path nedt:evaluatesCounty ; sh:maxCount 1 ] ;
+    sh:property [ sh:path nedt:evaluatesYear   ; sh:maxCount 1 ] ;
+    sh:property [ sh:path nedt:derivedUnder    ; sh:maxCount 1 ] .
+
+#############################################################
+#  v1.2.0 — Heat-density & flexibility shapes (CQ13–CQ15)
+#############################################################
+
+# ---- HeatDensity ------------------------------------------
+nedt:HeatDensityShape  a sh:NodeShape ;
+    sh:targetClass nedt:HeatDensity ;
+    sh:property [ sh:path nedt:heatDemand_kWh_per_m2_yr ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:decimal ; sh:minInclusive 0 ;
+                  sh:message "HeatDensity must carry exactly one non-negative nedt:heatDemand_kWh_per_m2_yr." ] .
+
+# ---- ThermalDemandCluster ---------------------------------
+nedt:ThermalDemandClusterShape  a sh:NodeShape ;
+    sh:targetClass nedt:ThermalDemandCluster ;
+    sh:property [ sh:path nedt:clusterCompactness ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:decimal ;
+                  sh:minInclusive 0 ; sh:maxInclusive 1 ;
+                  sh:message "ThermalDemandCluster.clusterCompactness must be in [0,1]." ] ;
+    sh:property [ sh:path nedt:evaluatesCounty ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:class nedt:County ] .
+
+# ---- DHViabilityKPI ---------------------------------------
+nedt:DHViabilityKPIShape  a sh:NodeShape ;
+    sh:targetClass nedt:DHViabilityKPI ;
+    sh:property [ sh:path nedt:viabilityThreshold_kWh_per_m2_yr ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:decimal ; sh:minInclusive 0 ;
+                  sh:message "DHViabilityKPI must cite the viability threshold used." ] ;
+    sh:property [ sh:path nedt:isDHViable ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:boolean ] ;
+    sh:property [ sh:path sosa:hasSimpleResult ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:decimal ;
+                  sh:message "DHViabilityKPI must carry the observed heat density (kWh/m²·yr) as sosa:hasSimpleResult." ] ;
+    sh:property [ sh:path nedt:derivedUnder ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:class nedt:Scenario ] ;
+    sh:property [ sh:path nedt:evaluatesYear ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:gYear ] .
+
+# ---- FlexibleLoad -----------------------------------------
+nedt:FlexibleLoadShape  a sh:NodeShape ;
+    sh:targetClass nedt:FlexibleLoad ;
+    sh:property [ sh:path nedt:controllableFraction ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:decimal ;
+                  sh:minInclusive 0 ; sh:maxInclusive 1 ;
+                  sh:message "FlexibleLoad.controllableFraction must be in [0,1]." ] ;
+    sh:property [ sh:path nedt:endUse ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:in ( "space_heat" "hp_replace" "ev" "dhw" ) ;
+                  sh:message "FlexibleLoad.endUse must be one of the four controllable end-uses." ] .
+
+# ---- FlexibilityKPI ---------------------------------------
+nedt:FlexibilityKPIShape  a sh:NodeShape ;
+    sh:targetClass nedt:FlexibilityKPI ;
+    sh:property [ sh:path nedt:flexibilityKW ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:decimal ; sh:minInclusive 0 ;
+                  sh:message "FlexibilityKPI must carry a non-negative nedt:flexibilityKW." ] ;
+    sh:property [ sh:path nedt:derivedUnder ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:class nedt:Scenario ] ;
+    sh:property [ sh:path nedt:evaluatesYear ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:gYear ] .
