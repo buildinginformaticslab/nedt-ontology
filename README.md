@@ -3,7 +3,7 @@
 A modular OWL ontology for the National Energy Digital Twin (NEDT) of the Irish residential energy system.
 
 [![Ontology](https://img.shields.io/badge/format-OWL%2FTurtle-blue)](DT_ontology.ttl)
-[![Version](https://img.shields.io/badge/version-1.2.0-green)](DT_ontology.ttl)
+[![Version](https://img.shields.io/badge/version-1.3.0-green)](DT_ontology.ttl)
 [![SHACL](https://img.shields.io/badge/SHACL-validated-brightgreen)](DT_shapes.ttl)
 [![License](https://img.shields.io/badge/license-CC%20BY%204.0-orange)](https://creativecommons.org/licenses/by/4.0/)
 
@@ -70,8 +70,7 @@ Once GitHub Pages is enabled on this repo, open these directly in any browser:
 
 | File | Description |
 |---|---|
-| `DT_ontology.ttl` | Core OWL ontology — 92 classes, 95 properties, 10 modules |
-| `DT_cim_alignment.ttl` | IEC CIM (61970-301 / 61968) alignment module — bridge axioms mapping NEDT network classes to CIM vocabulary |
+| `DT_ontology.ttl` | Core OWL ontology — 92 classes, 95 properties, 11 modules (incl. IEC CIM alignment) |
 | `DT_instances_v11.ttl` | Example A-Box instances (v11) |
 | `DT_shapes.ttl` | SHACL validation shapes |
 | `DT_kg.ttl` | Generated knowledge graph (Turtle) |
@@ -161,7 +160,7 @@ print("Conforms:", conforms)
 
 ### Standards Alignment
 
-`DT_cim_alignment.ttl` provides bridge axioms mapping the NEDT network vocabulary to the IEC Common Information Model — [IEC 61970-301](https://webstore.iec.ch/publication/62698) (Core/Wires/Meas) and IEC 61968 (Common, Metering) — using the CIM100 namespace published with CGMES 3.0. The module asserts terminological alignment (e.g. `nedt:LVStation ⊑ cim:Substation`, `nedt:StationCapacity` ↔ `cim:PowerTransformerEnd.ratedS` / `cim:ApparentPowerLimit`) and explicitly declares NEDT's scenario, utilisation-banding, and overload-attribution classes as contributions beyond CIM scope. It is an alignment of vocabulary only — no CGMES profile conformance or IEC 61968 message-interface compliance is claimed.
+Module 11 of `DT_ontology.ttl` provides bridge axioms mapping the NEDT network vocabulary to the IEC Common Information Model — [IEC 61970-301](https://webstore.iec.ch/publication/62698) (Core/Wires/Meas) and IEC 61968 (Common, Metering) — using the CIM100 namespace published with CGMES 3.0. The module asserts terminological alignment (e.g. `nedt:LVStation ⊑ cim:Substation`, `nedt:StationCapacity` ↔ `cim:PowerTransformerEnd.ratedS` / `cim:ApparentPowerLimit`) and explicitly declares NEDT's scenario, utilisation-banding, and overload-attribution classes as contributions beyond CIM scope. It is an alignment of vocabulary only — no CGMES profile conformance or IEC 61968 message-interface compliance is claimed.
 
 ---
 
