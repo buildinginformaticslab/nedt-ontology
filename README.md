@@ -71,6 +71,7 @@ Once GitHub Pages is enabled on this repo, open these directly in any browser:
 | File | Description |
 |---|---|
 | `DT_ontology.ttl` | Core OWL ontology — 92 classes, 95 properties, 10 modules |
+| `DT_cim_alignment.ttl` | IEC CIM (61970-301 / 61968) alignment module — bridge axioms mapping NEDT network classes to CIM vocabulary |
 | `DT_instances_v11.ttl` | Example A-Box instances (v11) |
 | `DT_shapes.ttl` | SHACL validation shapes |
 | `DT_kg.ttl` | Generated knowledge graph (Turtle) |
@@ -157,6 +158,10 @@ print("Conforms:", conforms)
 | [BOT](https://w3id.org/bot) | Building topology |
 | [PROV-O](https://www.w3.org/TR/prov-o/) | Provenance of DT runs and datasets |
 | [Dublin Core Terms](https://www.dublincore.org/specifications/dublin-core/dcmi-terms/) | Ontology metadata |
+
+### Standards Alignment
+
+`DT_cim_alignment.ttl` provides bridge axioms mapping the NEDT network vocabulary to the IEC Common Information Model — [IEC 61970-301](https://webstore.iec.ch/publication/62698) (Core/Wires/Meas) and IEC 61968 (Common, Metering) — using the CIM100 namespace published with CGMES 3.0. The module asserts terminological alignment (e.g. `nedt:LVStation ⊑ cim:Substation`, `nedt:StationCapacity` ↔ `cim:PowerTransformerEnd.ratedS` / `cim:ApparentPowerLimit`) and explicitly declares NEDT's scenario, utilisation-banding, and overload-attribution classes as contributions beyond CIM scope. It is an alignment of vocabulary only — no CGMES profile conformance or IEC 61968 message-interface compliance is claimed.
 
 ---
 
