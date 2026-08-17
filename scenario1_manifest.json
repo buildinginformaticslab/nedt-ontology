@@ -40,6 +40,14 @@
       "sha256": "32f843252cbabaab905fdfa279da50611c48af58442e960bfd39243a6c232c4a"
     },
     {
+      "path": "ontology/test_entailment.py",
+      "sha256": "4566c65b4e23defd68af49093550d11429a3366792d843fe799f6a16f29a5eba"
+    },
+    {
+      "path": "ontology/test_rollup_entailment.ttl",
+      "sha256": "763ad83be4766cff5d4c414286cf6f55f4dde6aac6fe5253d49a05a6ff53250f"
+    },
+    {
       "path": "ontology/scenario1_results.ttl",
       "sha256": "244ba4f998a3a4cbad817a9d520bc95b77caeba978e9d628a8660d41fbed4d5a"
     },
@@ -53,6 +61,7 @@
     "python3 AEI-2006-PredictiveEnergyModelling/scenario1_percatchment.py",
     "python3 AEI-2006-PredictiveEnergyModelling/export_scenario_results_to_rdf.py --input AEI-2006-PredictiveEnergyModelling/results/scenario1/lv_scenario1.csv",
     "python3 AEI-2006-PredictiveEnergyModelling/run_competency_queries.py",
-    "python3 ontology/validate_shapes.py"
+    "python3 ontology/validate_shapes.py",
+    "python3 ontology/test_entailment.py"
   ]
 }

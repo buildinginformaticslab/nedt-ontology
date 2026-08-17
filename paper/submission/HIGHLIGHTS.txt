@@ -1,0 +1,5 @@
+An OWL 2 DL knowledge graph links housing stock, scenarios and LV assets.
+The NEDT represents 2.14 million dwellings across 37,287 LV catchments.
+SHACL, HermiT and executed competency questions evaluate the semantic layer.
+Scenario results are materialised as provenance-linked capacity KPIs in RDF.
+The framework supports conditional, auditable electrification exposure screens.
