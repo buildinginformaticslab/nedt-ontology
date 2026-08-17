@@ -40,7 +40,7 @@ nedt:layer  a owl:AnnotationProperty ;
     dct:description "An OWL ontology describing building archetypes, hourly energy profiles, LV-network attribution, scenarios (including rooftop-PV adoption), KPI evaluation and visualisation components of the National Energy Digital Twin (NEDT) for Ireland."@en ;
     dct:issued     "2026-04-20"^^xsd:date ;
     dct:modified   "2026-07-16"^^xsd:date ;
-    owl:versionInfo "1.3.0" ;
+    owl:versionInfo "1.4.0" ;
     rdfs:seeAlso   <https://www.w3.org/ns/ssn/> ,
                    <https://www.w3.org/2006/time> ,
                    <http://www.ontology-of-units-of-measure.org/resource/om-2/> ;
@@ -776,3 +776,341 @@ nedt:DemandResponseCapacity
 nedt:Utilisation
     rdfs:seeAlso cim:OperationalLimitSet ;
     skos:note "Peak load / effective rating ratio; CIM expresses the limit (OperationalLimitSet/ApparentPowerLimit) but not the computed utilisation ratio or its status bands — gap filled by NEDT."@en .
+
+
+####
+
+# ---- Classes ---------------------------------------------
+nedt:HeatDensity a owl:Class ;
+    rdfs:subClassOf sosa:ObservableProperty ;
+    rdfs:label "Heat demand density"@en ;
+    rdfs:comment "Annual thermal demand per unit floor or land area (kWh·m⁻²·yr⁻¹) evaluated at a grid cell, SA cluster or dwelling group."@en .
+
+nedt:ThermalDemandCluster a owl:Class ;
+    rdfs:label "Thermal-demand cluster"@en ;
+    rdfs:comment "A contiguous group of archetypes / cells whose aggregated HeatDensity exceeds a threshold, produced by the DH-viability procedure."@en ;
+    rdfs:seeAlso bot:Zone .
+
+nedt:DHViabilityKPI a owl:Class ;
+    rdfs:subClassOf nedt:KPIValue ;
+    rdfs:label "District-heating viability KPI"@en ;
+    rdfs:comment "Carries the boolean viability verdict and the underlying heat density for one cluster / county / scenario / year."@en .
+
+nedt:GroupHeatingCandidate a owl:Class ;
+    rdfs:subClassOf nedt:ThermalDemandCluster ;
+    rdfs:label "Group / community heating candidate"@en ;
+    rdfs:comment "A ThermalDemandCluster in the 50–120 kWh·m⁻²·yr⁻¹ band whose compactness and dwelling-mix make it suitable for a shared-plant scheme."@en .
+
+nedt:FlexibleLoad a owl:Class ;
+    rdfs:subClassOf nedt:EndUseLoad ;
+    rdfs:label "Flexible load"@en ;
+    rdfs:comment "The subset of an EndUseLoad whose timing can be shifted inside a demand-response window (typically HP, EV and HP_replace end-uses)."@en .
+
+nedt:FlexibilityKPI a owl:Class ;
+    rdfs:subClassOf nedt:KPIValue ;
+    rdfs:label "LV-node flexibility KPI"@en ;
+    rdfs:comment "Shiftable kW at an LV station under a stated demand-response window and scenario / year."@en .
+
+nedt:DemandResponseCapacity a owl:Class ;
+    rdfs:subClassOf nedt:KPIValue ;
+    rdfs:label "Demand-response capacity"@en ;
+    rdfs:comment "Head-room (kW) available to a DR programme at an LV node after accounting for comfort and SOC constraints."@en .
+
+# ---- Properties ------------------------------------------
+nedt:heatDemand_kWh_per_m2_yr a owl:DatatypeProperty ;
+    rdfs:domain nedt:HeatDensity ; rdfs:range xsd:decimal ;
+    rdfs:label "heat demand (kWh/m²·yr)"@en .
+
+nedt:viabilityThreshold_kWh_per_m2_yr a owl:DatatypeProperty ;
+    rdfs:domain nedt:DHViabilityKPI ; rdfs:range xsd:decimal ;
+    rdfs:label "DH viability threshold (kWh/m²·yr)"@en .
+
+nedt:isDHViable a owl:DatatypeProperty ;
+    rdfs:domain nedt:DHViabilityKPI ; rdfs:range xsd:boolean ;
+    rdfs:label "is DH viable"@en .
+
+nedt:clusterCompactness a owl:DatatypeProperty ;
+    rdfs:domain nedt:ThermalDemandCluster ; rdfs:range xsd:decimal ;
+    rdfs:label "cluster compactness ratio (0–1)"@en .
+
+nedt:flexibilityKW a owl:DatatypeProperty ;
+    rdfs:domain nedt:FlexibilityKPI ; rdfs:range xsd:decimal ;
+    rdfs:label "shiftable load (kW)"@en .
+
+nedt:controllableFraction a owl:DatatypeProperty ;
+    rdfs:domain nedt:FlexibleLoad ; rdfs:range xsd:decimal ;
+    rdfs:label "controllable fraction (0–1)"@en .
+
+# ---- Layer annotations (all DT-model-extension) ----------
+nedt:HeatDensity              nedt:layer "DT-model-extension"@en .
+nedt:ThermalDemandCluster     nedt:layer "DT-model-extension"@en .
+nedt:DHViabilityKPI           nedt:layer "DT-model-extension"@en .
+nedt:GroupHeatingCandidate    nedt:layer "DT-model-extension"@en .
+nedt:FlexibleLoad             nedt:layer "DT-model-extension"@en .
+nedt:FlexibilityKPI           nedt:layer "DT-model-extension"@en .
+nedt:DemandResponseCapacity   nedt:layer "DT-model-extension"@en .
+
+
+#############################################################
+#  MODULE 12 — Planning layer: dwellings, network hierarchy,
+#  technology states, scenario operators, demand profiles,
+#  capacity KPIs and validation observations.
+#
+#  Added 2026-08-17. These are the terms documented in the
+#  class and property inventories of the NEDT journal paper
+#  (Appendices A and B) that were previously specified in the
+#  manuscript but absent from this T-Box.
+#############################################################
+
+# ---- Building stock spine -------------------------------------------------
+
+nedt:Building         a owl:Class ; rdfs:subClassOf bot:Building ;
+    rdfs:label "Building"@en ;
+    rdfs:comment "Physical building entity carrying one or more dwellings. Spatial container aligned to bot:Building and to the GeoDirectory address spine." .
+
+nedt:Dwelling         a owl:Class ; rdfs:subClassOf bot:Zone ;
+    rdfs:label "Dwelling"@en ;
+    rdfs:comment "A residential unit within a building. Core unit for archetype assignment and for transformer linkage via nedt:isServedBy." .
+
+nedt:SmallArea        a owl:Class ; rdfs:subClassOf geo:Feature ;
+    rdfs:label "Small Area"@en ;
+    rdfs:comment "CSO Census Small Area spatial unit; links dwelling stock to SAPS attributes." ;
+    rdfs:seeAlso osi:SmallArea .
+
+# ---- Network hierarchy above the LV station -------------------------------
+
+nedt:MVFeeder         a owl:Class ; rdfs:label "MV Feeder"@en ;
+    rdfs:comment "Medium-voltage (38 kV) parent network asset; supports LV-to-MV roll-up." ;
+    rdfs:seeAlso saragon:DistributionNode .
+
+nedt:HVSubstation     a owl:Class ; rdfs:label "HV Substation"@en ;
+    rdfs:comment "High-voltage (110/220 kV) upstream substation; supports MV-to-HV roll-up." ;
+    rdfs:seeAlso saragon:DistributionNode .
+
+# ---- Heating and mobility technology states ------------------------------
+
+nedt:TechnologyState  a owl:Class ; rdfs:label "Technology State"@en ;
+    rdfs:comment "The technology configuration of a dwelling or archetype under a given scenario." .
+
+nedt:ArchetypeState   a owl:Class ; rdfs:subClassOf nedt:TechnologyState ;
+    rdfs:label "Archetype State"@en ;
+    rdfs:comment "Baseline or scenario-specific condition of an archetype cohort." .
+
+nedt:HeatingSystem    a owl:Class ; rdfs:label "Heating System"@en ;
+    rdfs:comment "Generic space and water heating technology of a dwelling or archetype." .
+nedt:GasBoiler        a owl:Class ; rdfs:subClassOf nedt:HeatingSystem ; rdfs:label "Gas Boiler"@en .
+nedt:OilBoiler        a owl:Class ; rdfs:subClassOf nedt:HeatingSystem ; rdfs:label "Oil Boiler"@en .
+nedt:HeatPump         a owl:Class ; rdfs:subClassOf nedt:HeatingSystem ; rdfs:label "Heat Pump"@en .
+
+nedt:EVCharger        a owl:Class ; rdfs:label "EV Charger"@en ;
+    rdfs:comment "Electric-vehicle charging device associated with a dwelling." .
+nedt:V1HCharger       a owl:Class ; rdfs:subClassOf nedt:EVCharger ;
+    rdfs:label "V1H Charger"@en ;
+    rdfs:comment "Unidirectional smart charger (controlled charging, no export)." .
+nedt:V2HCharger       a owl:Class ; rdfs:subClassOf nedt:EVCharger ;
+    rdfs:label "V2H Charger"@en ;
+    rdfs:comment "Bidirectional vehicle-to-home charger (controlled charging with discharge)." .
+
+nedt:OccupancyModel   a owl:Class ; rdfs:label "Occupancy Model"@en ;
+    rdfs:comment "The model used to generate occupancy profiles for archetype simulation." .
+nedt:OccupancyProfile a owl:Class ; rdfs:subClassOf nedt:HourlyProfile ;
+    rdfs:label "Occupancy Profile"@en .
+
+# ---- Scenario machinery ---------------------------------------------------
+
+nedt:ScenarioOperator a owl:Class ; rdfs:label "Scenario Operator"@en ;
+    rdfs:comment "An action that modifies stock composition or technology state, e.g. converting a fraction of oil-heated dwellings to heat pumps." .
+
+nedt:TechnologyTransition a owl:Class ; rdfs:label "Technology Transition"@en ;
+    rdfs:comment "A transition from one technology state to another, with an associated transition count." .
+
+# ---- Demand profiles and capacity KPIs -----------------------------------
+
+nedt:DemandProfile    a owl:Class ; rdfs:subClassOf nedt:HourlyProfile ;
+    rdfs:label "Demand Profile"@en ;
+    rdfs:comment "An hourly or otherwise structured demand profile, baseline or scenario-specific." .
+
+nedt:CapacityKPI      a owl:Class ; rdfs:subClassOf nedt:KPI ;
+    rdfs:label "Capacity KPI"@en ;
+    rdfs:comment "A capacity-risk indicator for a network asset: utilisation ratio, headroom, overload flag or overload hours." .
+
+nedt:CountyDemandAggregate a owl:Class ; rdfs:subClassOf nedt:CountyKPI ;
+    rdfs:label "County Demand Aggregate"@en .
+nedt:NationalDemandAggregate a owl:Class ; rdfs:subClassOf nedt:NationalKPI ;
+    rdfs:label "National Demand Aggregate"@en .
+
+nedt:ValidationObservation a owl:Class ; rdfs:subClassOf sosa:Observation ;
+    rdfs:label "Validation Observation"@en ;
+    rdfs:comment "A measured observation used to validate a modelled output, e.g. a CSO county electricity series or an ESB Networks published station utilisation value." .
+
+# ---- Object properties ---------------------------------------------------
+
+nedt:hasDwelling      a owl:ObjectProperty ;
+    rdfs:domain nedt:Building ; rdfs:range nedt:Dwelling ;
+    rdfs:label "has dwelling"@en .
+
+nedt:locatedInCounty  a owl:ObjectProperty ;
+    rdfs:range nedt:County ;
+    rdfs:label "located in county"@en ;
+    rdfs:comment "Domain is the union of Building, Dwelling and LVStation." .
+
+nedt:locatedInSmallArea a owl:ObjectProperty ;
+    rdfs:domain nedt:Dwelling ; rdfs:range nedt:SmallArea ;
+    rdfs:label "located in small area"@en .
+
+nedt:isServedBy       a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:domain nedt:Dwelling ; rdfs:range nedt:LVStation ;
+    rdfs:label "is served by"@en ;
+    rdfs:comment "Links each dwelling to its assigned candidate serving MV/LV transformer. Functional: the enrichment assigns exactly one station per dwelling. Equivalent to the NEAREST_LV_STATION relationship in the Neo4j property-graph deployment." .
+
+nedt:hasParentMVFeeder a owl:ObjectProperty ;
+    rdfs:domain nedt:LVStation ; rdfs:range nedt:MVFeeder ;
+    rdfs:subPropertyOf nedt:isProvidedBy ;
+    rdfs:label "has parent MV feeder"@en .
+
+nedt:hasParentHVSubstation a owl:ObjectProperty ;
+    rdfs:domain nedt:MVFeeder ; rdfs:range nedt:HVSubstation ;
+    rdfs:subPropertyOf nedt:isProvidedBy ;
+    rdfs:label "has parent HV substation"@en .
+
+nedt:hasServiceArea   a owl:ObjectProperty ;
+    rdfs:domain nedt:LVStation ; rdfs:range geo:Feature ;
+    rdfs:label "has service area"@en .
+
+nedt:instantiatesArchetype a owl:ObjectProperty ;
+    rdfs:domain nedt:Dwelling ; rdfs:range nedt:Archetype ;
+    rdfs:label "instantiates archetype"@en .
+
+nedt:usesHeatingSystem a owl:ObjectProperty ;
+    rdfs:range nedt:HeatingSystem ;
+    rdfs:label "uses heating system"@en ;
+    rdfs:comment "Domain is the union of Dwelling and Archetype." .
+
+nedt:hasEVCharger     a owl:ObjectProperty ;
+    rdfs:domain nedt:Dwelling ; rdfs:range nedt:EVCharger ;
+    rdfs:label "has EV charger"@en .
+
+nedt:evaluatedUnderScenario a owl:ObjectProperty ;
+    rdfs:range nedt:Scenario ;
+    rdfs:label "evaluated under scenario"@en ;
+    rdfs:comment "Links a demand profile, KPI or archetype state to the scenario under which it was produced. Domain is the union of DemandProfile, KPI and ArchetypeState." .
+
+nedt:appliesScenarioOperator a owl:ObjectProperty ;
+    rdfs:domain nedt:Scenario ; rdfs:range nedt:ScenarioOperator ;
+    rdfs:label "applies scenario operator"@en .
+
+nedt:changesTechnologyState a owl:ObjectProperty ;
+    rdfs:domain nedt:ScenarioOperator ; rdfs:range nedt:TechnologyTransition ;
+    rdfs:label "changes technology state"@en .
+
+nedt:forLVStation     a owl:ObjectProperty ;
+    rdfs:domain nedt:CapacityKPI ; rdfs:range nedt:LVStation ;
+    rdfs:label "for LV station"@en .
+
+nedt:forCounty        a owl:ObjectProperty ;
+    rdfs:range nedt:County ;
+    rdfs:label "for county"@en .
+
+nedt:aggregatesDemandFrom a owl:ObjectProperty ;
+    rdfs:label "aggregates demand from"@en ;
+    rdfs:comment "Supports multi-scale roll-up from dwelling and station demand to county and national aggregates." .
+
+nedt:validatedAgainstObservation a owl:ObjectProperty ;
+    rdfs:range nedt:ValidationObservation ;
+    rdfs:label "validated against observation"@en ;
+    rdfs:comment "Links a modelled demand profile or KPI to the measured observation used to assess it." .
+
+nedt:fromArchetype    a owl:ObjectProperty ;
+    rdfs:domain nedt:TechnologyTransition ; rdfs:range nedt:Archetype ;
+    rdfs:label "from archetype"@en .
+nedt:toArchetype      a owl:ObjectProperty ;
+    rdfs:domain nedt:TechnologyTransition ; rdfs:range nedt:Archetype ;
+    rdfs:label "to archetype"@en .
+
+# ---- Datatype properties -------------------------------------------------
+
+nedt:hasCapacityValue a owl:DatatypeProperty ;
+    rdfs:domain nedt:LVStation ; rdfs:range xsd:decimal ;
+    rdfs:label "rated capacity (kVA)"@en ;
+    rdfs:comment "Rated (nameplate) apparent-power capacity in kVA." .
+
+nedt:hasAssignmentDistanceM a owl:DatatypeProperty ;
+    rdfs:domain nedt:Dwelling ; rdfs:range xsd:decimal ;
+    rdfs:label "assignment distance (m)"@en .
+
+nedt:hasScenarioYear  a owl:DatatypeProperty ;
+    rdfs:domain nedt:Scenario ; rdfs:range xsd:integer ;
+    rdfs:label "scenario year"@en .
+
+nedt:hasBuildType     a owl:DatatypeProperty ;
+    rdfs:domain nedt:Archetype ; rdfs:range xsd:string ;
+    rdfs:label "build type"@en .
+nedt:hasBERCategory   a owl:DatatypeProperty ;
+    rdfs:domain nedt:Archetype ; rdfs:range xsd:string ;
+    rdfs:label "BER category"@en .
+nedt:hasOccupancyCategory a owl:DatatypeProperty ;
+    rdfs:domain nedt:Archetype ; rdfs:range xsd:integer ;
+    rdfs:label "occupancy category"@en .
+
+nedt:hasHPAdoptionFraction a owl:DatatypeProperty ;
+    rdfs:domain nedt:Scenario ; rdfs:range xsd:decimal ; rdfs:label "HP adoption fraction"@en .
+nedt:hasEVAdoptionFraction a owl:DatatypeProperty ;
+    rdfs:domain nedt:Scenario ; rdfs:range xsd:decimal ; rdfs:label "EV adoption fraction"@en .
+nedt:hasPVAdoptionFraction a owl:DatatypeProperty ;
+    rdfs:domain nedt:Scenario ; rdfs:range xsd:decimal ; rdfs:label "PV adoption fraction"@en .
+
+nedt:transitionCount  a owl:DatatypeProperty ;
+    rdfs:domain nedt:TechnologyTransition ; rdfs:range xsd:integer ;
+    rdfs:label "transition count"@en .
+
+nedt:hasPeakDemandKW  a owl:DatatypeProperty ;
+    rdfs:domain nedt:CapacityKPI ; rdfs:range xsd:decimal ; rdfs:label "peak demand (kW)"@en .
+nedt:hasRatedCapacityKVA a owl:DatatypeProperty ;
+    rdfs:domain nedt:CapacityKPI ; rdfs:range xsd:decimal ; rdfs:label "rated capacity (kVA)"@en .
+nedt:hasOverloadHours a owl:DatatypeProperty ;
+    rdfs:domain nedt:CapacityKPI ; rdfs:range xsd:integer ; rdfs:label "overload hours"@en .
+nedt:hasCapacityImputed a owl:DatatypeProperty ;
+    rdfs:domain nedt:LVStation ; rdfs:range xsd:boolean ;
+    rdfs:label "capacity imputed"@en ;
+    rdfs:comment "True where the rated capacity was not available from the source asset register and a default was substituted. Consumers must treat utilisation for such stations as indicative only." .
+
+nedt:hasMeasuredValue a owl:DatatypeProperty ;
+    rdfs:domain nedt:ValidationObservation ; rdfs:range xsd:decimal ;
+    rdfs:label "measured value"@en .
+nedt:hasTimestamp     a owl:DatatypeProperty ;
+    rdfs:domain nedt:ValidationObservation ; rdfs:range xsd:dateTime ;
+    rdfs:label "timestamp"@en .
+
+nedt:hasCoincidenceFactor a owl:DatatypeProperty ;
+    rdfs:domain nedt:StationLoad ; rdfs:range xsd:decimal ;
+    rdfs:label "coincidence factor applied"@en .
+nedt:hasCountyCalibrationFactor a owl:DatatypeProperty ;
+    rdfs:domain nedt:CountyDemandAggregate ; rdfs:range xsd:decimal ;
+    rdfs:label "county electricity calibration factor"@en ;
+    rdfs:comment "Multiplicative factor applied to modelled county electricity so that annual totals reconcile with CSO metered consumption. Recorded explicitly so that calibrated outputs are never mistaken for independent validation." .
+
+# ---- Layer annotations ---------------------------------------------------
+
+nedt:Building              nedt:layer "core-KG-framework"@en .
+nedt:Dwelling              nedt:layer "core-KG-framework"@en .
+nedt:SmallArea             nedt:layer "core-KG-framework"@en .
+nedt:MVFeeder              nedt:layer "core-KG-framework"@en .
+nedt:HVSubstation          nedt:layer "core-KG-framework"@en .
+nedt:HeatingSystem         nedt:layer "core-KG-framework"@en .
+nedt:GasBoiler             nedt:layer "core-KG-framework"@en .
+nedt:OilBoiler             nedt:layer "core-KG-framework"@en .
+nedt:HeatPump              nedt:layer "core-KG-framework"@en .
+nedt:EVCharger             nedt:layer "core-KG-framework"@en .
+nedt:V1HCharger            nedt:layer "DT-model-extension"@en .
+nedt:V2HCharger            nedt:layer "DT-model-extension"@en .
+nedt:TechnologyState       nedt:layer "DT-model-extension"@en .
+nedt:ArchetypeState        nedt:layer "DT-model-extension"@en .
+nedt:ScenarioOperator      nedt:layer "DT-model-extension"@en .
+nedt:TechnologyTransition  nedt:layer "DT-model-extension"@en .
+nedt:DemandProfile         nedt:layer "DT-model-extension"@en .
+nedt:CapacityKPI           nedt:layer "DT-model-extension"@en .
+nedt:OccupancyModel        nedt:layer "DT-model-extension"@en .
+nedt:OccupancyProfile      nedt:layer "DT-model-extension"@en .
+nedt:ValidationObservation nedt:layer "DT-model-extension"@en .
+nedt:CountyDemandAggregate nedt:layer "DT-model-extension"@en .
+nedt:NationalDemandAggregate nedt:layer "DT-model-extension"@en .

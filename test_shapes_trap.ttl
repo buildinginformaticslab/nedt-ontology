@@ -1,0 +1,25 @@
+@prefix nedt: <https://example.org/nedt#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <https://example.org/test#> .
+
+ex:cork a nedt:County ; rdfs:label "Cork" .
+ex:arch_ok a nedt:Archetype ; nedt:hasBuildType "Detached" ; nedt:hasBERCategory "C" ; nedt:hasOccupancyCategory 4 .
+ex:scn_ok  a nedt:Scenario ; nedt:hasScenarioYear 2030 ; nedt:hasHPAdoptionFraction "0.2"^^xsd:decimal .
+
+# TRAP 1: station with imputed capacity not declared
+ex:lv_bad1 a nedt:LVStation ; nedt:hasCapacityValue "200.0"^^xsd:decimal .
+# TRAP 2: implausible capacity
+ex:lv_bad2 a nedt:LVStation ; nedt:hasCapacityValue "99999.0"^^xsd:decimal ; nedt:hasCapacityImputed false .
+# TRAP 3: dwelling assigned 45 km away (failed spatial join)
+ex:dw_bad a nedt:Dwelling ; nedt:locatedInCounty ex:cork ;
+    nedt:instantiatesArchetype ex:arch_ok ; nedt:isServedBy ex:lv_bad2 ;
+    nedt:hasAssignmentDistanceM "45000.0"^^xsd:decimal .
+# TRAP 4: archetype with BER outside A-G
+ex:arch_bad a nedt:Archetype ; nedt:hasBuildType "Castle" ; nedt:hasBERCategory "Z" .
+# TRAP 5: KPI with no scenario scope and no provenance
+ex:kpi_bad a nedt:CapacityKPI ; nedt:forLVStation ex:lv_bad2 ;
+    nedt:hasPeakDemandKW "120.0"^^xsd:decimal ; nedt:hasRatedCapacityKVA "50.0"^^xsd:decimal ;
+    nedt:hasUtilisation "2.4"^^xsd:decimal ; nedt:hasOverloadHours 99999 .
+# TRAP 6: county aggregate hiding its calibration factor
+ex:agg_bad a nedt:CountyDemandAggregate ; nedt:forCounty ex:cork .

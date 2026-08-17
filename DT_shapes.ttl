@@ -1,4 +1,5 @@
 @prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix nedt:  <https://example.org/nedt#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
@@ -168,3 +169,160 @@ nedt:FlexibilityKPIShape  a sh:NodeShape ;
                   sh:class nedt:Scenario ] ;
     sh:property [ sh:path nedt:evaluatesYear ; sh:minCount 1 ; sh:maxCount 1 ;
                   sh:datatype xsd:gYear ] .
+
+
+#############################################################
+#  PLANNING-LAYER SHAPES
+#
+#  Added 2026-08-17. These shapes constrain the dwelling,
+#  station, archetype, scenario and KPI instances introduced
+#  in Module 12 of the T-Box, and correspond to the shape
+#  graph reported in the NEDT journal paper.
+#
+#  These are deliberately falsifiable: they test value ranges,
+#  controlled vocabularies and cross-field consistency, not
+#  only the presence of triples that the ETL always emits.
+#############################################################
+
+nedt:DwellingShape
+    a sh:NodeShape ;
+    sh:targetClass nedt:Dwelling ;
+    sh:property [ sh:path nedt:locatedInCounty ;
+                  sh:class nedt:County ;
+                  sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:message "Every dwelling must resolve to exactly one county." ] ;
+    sh:property [ sh:path nedt:instantiatesArchetype ;
+                  sh:class nedt:Archetype ;
+                  sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:message "Every dwelling must instantiate exactly one archetype." ] ;
+    sh:property [ sh:path nedt:isServedBy ;
+                  sh:class nedt:LVStation ;
+                  sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:message "Every dwelling must be served by exactly one LV station." ] ;
+    sh:property [ sh:path nedt:hasAssignmentDistanceM ;
+                  sh:datatype xsd:decimal ;
+                  sh:minInclusive 0 ; sh:maxInclusive 20000 ;
+                  sh:maxCount 1 ;
+                  sh:message "Dwelling-to-station assignment distance must lie in [0, 20000] m; larger values indicate a failed spatial join rather than a real service connection." ] .
+
+nedt:LVStationShape
+    a sh:NodeShape ;
+    sh:targetClass nedt:LVStation ;
+    sh:property [ sh:path nedt:hasCapacityValue ;
+                  sh:datatype xsd:decimal ;
+                  sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:minExclusive 0 ; sh:maxInclusive 2000 ;
+                  sh:message "Rated capacity must be a single positive kVA value not exceeding 2000 kVA." ] ;
+    sh:property [ sh:path nedt:hasCapacityImputed ;
+                  sh:datatype xsd:boolean ;
+                  sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:message "Every station must declare whether its rated capacity was imputed. Silent imputation is not permitted: utilisation for imputed stations is indicative only." ] ;
+    sh:property [ sh:path nedt:hasParentMVFeeder ;
+                  sh:class nedt:MVFeeder ;
+                  sh:maxCount 1 ;
+                  sh:message "A station may have at most one parent MV feeder." ] .
+
+nedt:MVFeederShape
+    a sh:NodeShape ;
+    sh:targetClass nedt:MVFeeder ;
+    sh:property [ sh:path nedt:hasParentHVSubstation ;
+                  sh:class nedt:HVSubstation ;
+                  sh:maxCount 1 ;
+                  sh:message "An MV feeder may have at most one parent HV substation." ] .
+
+nedt:ArchetypeShape
+    a sh:NodeShape ;
+    sh:targetClass nedt:Archetype ;
+    sh:property [ sh:path nedt:hasBuildType ;
+                  sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:in ( "Detached" "SemiD" "Terraced" "Apartment" "Bungalow" ) ;
+                  sh:message "Build type must be one of the five controlled dwelling types." ] ;
+    sh:property [ sh:path nedt:hasBERCategory ;
+                  sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:in ( "A" "B" "C" "D" "E" "F" "G" ) ;
+                  sh:message "BER category must be a single letter grade A-G." ] ;
+    sh:property [ sh:path nedt:hasOccupancyCategory ;
+                  sh:datatype xsd:integer ;
+                  sh:minInclusive 1 ; sh:maxInclusive 5 ; sh:maxCount 1 ;
+                  sh:message "Occupancy category must be an integer in [1,5]." ] .
+
+nedt:ScenarioShape
+    a sh:NodeShape ;
+    sh:targetClass nedt:Scenario ;
+    sh:property [ sh:path nedt:hasScenarioYear ;
+                  sh:datatype xsd:integer ;
+                  sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:minInclusive 2020 ; sh:maxInclusive 2050 ;
+                  sh:message "Scenario year must lie within the modelled horizon [2020, 2050]." ] ;
+    sh:property [ sh:path nedt:hasHPAdoptionFraction ;
+                  sh:datatype xsd:decimal ; sh:minInclusive 0 ; sh:maxInclusive 1 ;
+                  sh:message "HP adoption fraction must lie in [0,1]." ] ;
+    sh:property [ sh:path nedt:hasEVAdoptionFraction ;
+                  sh:datatype xsd:decimal ; sh:minInclusive 0 ; sh:maxInclusive 1 ;
+                  sh:message "EV adoption fraction must lie in [0,1]." ] ;
+    sh:property [ sh:path nedt:hasPVAdoptionFraction ;
+                  sh:datatype xsd:decimal ; sh:minInclusive 0 ; sh:maxInclusive 1 ;
+                  sh:message "PV adoption fraction must lie in [0,1]." ] .
+
+nedt:CountyShape
+    a sh:NodeShape ;
+    sh:targetClass nedt:County ;
+    sh:property [ sh:path rdfs:label ;
+                  sh:datatype xsd:string ; sh:minCount 1 ;
+                  sh:message "Every county must carry a label." ] .
+
+nedt:CapacityKPIShape
+    a sh:NodeShape ;
+    sh:targetClass nedt:CapacityKPI ;
+    sh:property [ sh:path nedt:forLVStation ;
+                  sh:class nedt:LVStation ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:message "A capacity KPI must reference exactly one LV station." ] ;
+    sh:property [ sh:path nedt:evaluatedUnderScenario ;
+                  sh:class nedt:Scenario ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:message "A capacity KPI must declare the scenario it was evaluated under; unscoped KPIs cannot be compared." ] ;
+    sh:property [ sh:path nedt:hasPeakDemandKW ;
+                  sh:datatype xsd:decimal ; sh:minCount 1 ; sh:minInclusive 0 ;
+                  sh:message "Peak demand must be a non-negative kW value." ] ;
+    sh:property [ sh:path nedt:hasRatedCapacityKVA ;
+                  sh:datatype xsd:decimal ; sh:minCount 1 ; sh:minExclusive 0 ;
+                  sh:message "Rated capacity must be a positive kVA value." ] ;
+    sh:property [ sh:path nedt:hasUtilisation ;
+                  sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:message "A capacity KPI must carry exactly one utilisation value." ] ;
+    sh:property [ sh:path nedt:hasOverloadHours ;
+                  sh:datatype xsd:integer ;
+                  sh:minInclusive 0 ; sh:maxInclusive 8760 ; sh:maxCount 1 ;
+                  sh:message "Overload hours must lie in [0, 8760]." ] ;
+    sh:property [ sh:path prov:wasGeneratedBy ;
+                  sh:minCount 1 ;
+                  sh:message "Every capacity KPI must be traceable to a generating PROV-O activity." ] .
+
+nedt:ValidationObservationShape
+    a sh:NodeShape ;
+    sh:targetClass nedt:ValidationObservation ;
+    sh:property [ sh:path nedt:hasMeasuredValue ;
+                  sh:datatype xsd:decimal ; sh:minCount 1 ;
+                  sh:message "A validation observation must carry a measured value." ] ;
+    sh:property [ sh:path nedt:hasTimestamp ;
+                  sh:datatype xsd:dateTime ; sh:minCount 1 ;
+                  sh:message "A validation observation must carry a timestamp." ] .
+
+nedt:CountyDemandAggregateShape
+    a sh:NodeShape ;
+    sh:targetClass nedt:CountyDemandAggregate ;
+    sh:property [ sh:path nedt:hasCountyCalibrationFactor ;
+                  sh:datatype xsd:decimal ;
+                  sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:minInclusive 0.5 ; sh:maxInclusive 2.0 ;
+                  sh:message "County aggregates must declare the electricity calibration factor applied, in [0.5, 2.0]. Undeclared calibration would allow scaled outputs to be reported as independent validation." ] .
+
+nedt:TechnologyTransitionShape
+    a sh:NodeShape ;
+    sh:targetClass nedt:TechnologyTransition ;
+    sh:property [ sh:path nedt:fromArchetype ;
+                  sh:class nedt:Archetype ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path nedt:toArchetype ;
+                  sh:class nedt:Archetype ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path nedt:transitionCount ;
+                  sh:datatype xsd:integer ; sh:minCount 1 ; sh:minInclusive 0 ;
+                  sh:message "Transition count must be a non-negative integer." ] .
