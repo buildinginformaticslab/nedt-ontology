@@ -3,7 +3,7 @@
 A modular OWL ontology for the National Energy Digital Twin (NEDT) of the Irish residential energy system.
 
 [![Ontology](https://img.shields.io/badge/format-OWL%2FTurtle-blue)](DT_ontology.ttl)
-[![Version](https://img.shields.io/badge/version-1.3.0-green)](DT_ontology.ttl)
+[![Version](https://img.shields.io/badge/version-1.4.0-green)](DT_ontology.ttl)
 [![SHACL](https://img.shields.io/badge/SHACL-validated-brightgreen)](DT_shapes.ttl)
 [![License](https://img.shields.io/badge/license-CC%20BY%204.0-orange)](https://creativecommons.org/licenses/by/4.0/)
 
@@ -23,46 +23,11 @@ The NEDT ontology provides a shared, machine-interpretable vocabulary for a nati
 
 ## Visualise
 
-### Option 1 — WebVOWL (ontology class diagram, no install)
+Explore the ontology interactively (no install needed):
 
-WebVOWL renders the ontology as an interactive node-link diagram showing all classes and properties.
+**[Open in WebVOWL](https://service.tib.eu/webvowl/#iri=https://raw.githubusercontent.com/nedt-ireland/nedt-ontology/main/DT_ontology.ttl)**
 
-**Step 1 — Open WebVOWL**
-Go to [service.tib.eu/webvowl](https://service.tib.eu/webvowl) in your browser.
-
-**Step 2 — Load the ontology**
-- Click **`Ontology`** in the bottom bar
-- Select **`Upload local ontology file`**
-- Choose `DT_ontology.ttl` from this repo
-
-**Step 3 — Explore**
-- Pan and zoom the class graph
-- Click any node to see its properties and relationships
-- Use the **Filter** panel (bottom bar) to show/hide modules
-- Use **Search** (top bar) to jump to a specific class e.g. `LVStation`
-
-**Step 4 — Share with your team**
-- Click **`Export`** → **`Share current ontology`**
-- Copy the permalink URL — anyone with it sees the same view instantly, no account needed
-
----
-
-### Option 2 — Interactive HTML viewers (GitHub Pages)
-
-Once GitHub Pages is enabled on this repo, open these directly in any browser:
-
-| Viewer | What it shows |
-|---|---|
-| [DT_kg_viewer.html](DT_kg_viewer.html) | Full interactive knowledge graph — click nodes, filter by class |
-| [DT_kg_visualiser.html](DT_kg_visualiser.html) | Alternative KG layout |
-| [ontology_diagrams.html](ontology_diagrams.html) | 9 SVG panels — one per ontology module |
-| [ontology_positioning.html](ontology_positioning.html) | Coverage matrix vs existing ontologies |
-| [ontology_relations.html](ontology_relations.html) | Class relations view |
-
-**To enable GitHub Pages:**
-1. Go to the repo on GitHub → **Settings** → **Pages**
-2. Source: `main` branch, folder `/` (root) → click **Save**
-3. Your viewers will be live at `https://buildinginformaticslab.github.io/nedt-ontology/`
+Or upload `DT_ontology.ttl` manually at [service.tib.eu/webvowl](https://service.tib.eu/webvowl).
 
 ---
 
@@ -70,7 +35,7 @@ Once GitHub Pages is enabled on this repo, open these directly in any browser:
 
 | File | Description |
 |---|---|
-| `DT_ontology.ttl` | Core OWL ontology — 92 classes, 95 properties, 11 modules (incl. IEC CIM alignment) |
+| `DT_ontology.ttl` | Core OWL ontology — 116 classes, 133 object/datatype properties, 10 modules |
 | `DT_instances_v11.ttl` | Example A-Box instances (v11) |
 | `DT_shapes.ttl` | SHACL validation shapes |
 | `DT_kg.ttl` | Generated knowledge graph (Turtle) |
@@ -130,7 +95,7 @@ print(f"Loaded {len(g)} triples")
 results = g.query("""
     PREFIX nedt: <https://example.org/nedt#>
     SELECT ?station ?kva
-    WHERE { ?station a nedt:LVStation ; nedt:ratedKVA ?kva . }
+    WHERE { ?station a nedt:LVStation ; nedt:hasCapacityValue ?kva . }
     ORDER BY DESC(?kva)
 """)
 for row in results:
@@ -158,16 +123,11 @@ print("Conforms:", conforms)
 | [PROV-O](https://www.w3.org/TR/prov-o/) | Provenance of DT runs and datasets |
 | [Dublin Core Terms](https://www.dublincore.org/specifications/dublin-core/dcmi-terms/) | Ontology metadata |
 
-### Standards Alignment
-
-Module 11 of `DT_ontology.ttl` provides bridge axioms mapping the NEDT network vocabulary to the IEC Common Information Model — [IEC 61970-301](https://webstore.iec.ch/publication/62698) (Core/Wires/Meas) and IEC 61968 (Common, Metering) — using the CIM100 namespace published with CGMES 3.0. The module asserts terminological alignment (e.g. `nedt:LVStation ⊑ cim:Substation`, `nedt:StationCapacity` ↔ `cim:PowerTransformerEnd.ratedS` / `cim:ApparentPowerLimit`) and explicitly declares NEDT's scenario, utilisation-banding, and overload-attribution classes as contributions beyond CIM scope. It is an alignment of vocabulary only — no CGMES profile conformance or IEC 61968 message-interface compliance is claimed.
-
 ---
 
 ## Authors
 
 - Divyanshu Sood
-- Cathal Hoare
 - Sharon Coffee
 - James O'Donnell
 
@@ -180,5 +140,5 @@ If you use this ontology, please cite:
 ```
 Sood, D., Coffee, S., O'Donnell, J. (2026).
 A Modular Ontology for the National Energy Digital Twin (NEDT).
-https://github.com/buildinginformaticslab/nedt-ontology
+https://github.com/nedt-ireland/nedt-ontology
 ```

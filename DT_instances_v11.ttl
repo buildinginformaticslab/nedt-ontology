@@ -1,5 +1,5 @@
-@prefix nedt: <https://example.org/nedt#> .
 @prefix inst: <https://example.org/nedt/inst/> .
+@prefix nedt: <https://example.org/nedt#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix sosa: <http://www.w3.org/ns/sosa/> .
@@ -41,15 +41,15 @@ inst:OE_Louth_0412_20350118_1800 a nedt:OverloadEvent ;
     nedt:overloadMagnitude_kW 48.2 .
 
 inst:RevFlow_Louth_0412_0 a nedt:ReversePowerFlowHour ;
-    time:inXSDDateTimeStamp "2035-05-12T13:00:00"^^xsd:dateTimeStamp ;
+    time:inXSDDateTimeStamp "2035-05-12T13:00:00Z"^^xsd:dateTimeStamp ;
     nedt:derivedUnder inst:Scenario_S2_2035 .
 
 inst:RevFlow_Louth_0412_1 a nedt:ReversePowerFlowHour ;
-    time:inXSDDateTimeStamp "2035-06-14T14:00:00"^^xsd:dateTimeStamp ;
+    time:inXSDDateTimeStamp "2035-06-14T14:00:00Z"^^xsd:dateTimeStamp ;
     nedt:derivedUnder inst:Scenario_S2_2035 .
 
 inst:RevFlow_Louth_0412_2 a nedt:ReversePowerFlowHour ;
-    time:inXSDDateTimeStamp "2035-07-21T12:00:00"^^xsd:dateTimeStamp ;
+    time:inXSDDateTimeStamp "2035-07-21T12:00:00Z"^^xsd:dateTimeStamp ;
     nedt:derivedUnder inst:Scenario_S2_2035 .
 
 inst:SensRun_S2_2035_HPvsEV a nedt:SensitivityRun ;
@@ -58,16 +58,22 @@ inst:SensRun_S2_2035_HPvsEV a nedt:SensitivityRun ;
 
 inst:Arch_SD_B2_post2011 a nedt:Archetype ;
     rdfs:label "Detached·B2·post-2011·HP"@en ;
+    nedt:hasBERCategory "B" ;
+    nedt:hasBuildType "Detached" ;
     nedt:hasDescriptor inst:BER_B2,
         inst:DType_Detached,
         inst:Period_post2011 ;
+    nedt:hasOccupancyCategory 2 ;
     nedt:hasPVSystem inst:PV_SD_B2_post2011_4kWp .
 
 inst:Arch_TH_D1_1971 a nedt:Archetype ;
     rdfs:label "Terraced·D1·1971-1990·Oil"@en ;
+    nedt:hasBERCategory "D" ;
+    nedt:hasBuildType "Terraced" ;
     nedt:hasDescriptor inst:BER_D1,
         inst:DType_Terraced,
-        inst:Period_1971_1990 .
+        inst:Period_1971_1990 ;
+    nedt:hasOccupancyCategory 3 .
 
 inst:Att_Louth_0412_20350118_1800 a nedt:OverloadAttribution ;
     nedt:ranksBy inst:Contrib_Louth_0412_20350118_1800_ev,
@@ -139,11 +145,13 @@ inst:EndUse_space_heat a nedt:EndUseLoad ;
 inst:LV_Louth_0412 a nedt:LVStation,
         nedt:OverloadedStation ;
     rdfs:label "LV_Louth_0412"@en ;
-    nedt:hasAttribution inst:Att_Louth_0412_20350118_1800 .
+    nedt:hasAttribution inst:Att_Louth_0412_20350118_1800 ;
+    nedt:hasCapacityImputed false ;
+    nedt:hasCapacityValue 200.0 .
 
 inst:Peak_Louth_2035_S2 a nedt:CoincidentPeak ;
     rdfs:label "peak_Louth_2035_S2"@en ;
-    time:inXSDDateTimeStamp "2035-01-18T18:00:00"^^xsd:dateTimeStamp ;
+    time:inXSDDateTimeStamp "2035-01-18T18:00:00Z"^^xsd:dateTimeStamp ;
     prov:wasGeneratedBy inst:DTRun_Louth_S2_2035 ;
     sosa:hasSimpleResult 214.3 ;
     nedt:derivedUnder inst:Scenario_S2_2035 ;
@@ -190,5 +198,6 @@ inst:PV_SD_B2_post2011_4kWp a nedt:PVSystem ;
 inst:Scenario_S2_2035 a nedt:Scenario ;
     rdfs:label "S2_2035"@en ;
     nedt:hasScenarioParameter inst:SP_HP_TH_D1_2035,
-        inst:SP_PV_SD_2035 .
+        inst:SP_PV_SD_2035 ;
+    nedt:hasScenarioYear 2035 .
 

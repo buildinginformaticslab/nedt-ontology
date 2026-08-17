@@ -41,6 +41,7 @@ nedt:layer  a owl:AnnotationProperty ;
     dct:issued     "2026-04-20T00:00:00Z"^^xsd:dateTime ;
     dct:modified   "2026-07-16T00:00:00Z"^^xsd:dateTime ;
     owl:versionInfo "1.4.0" ;
+    dct:license    <https://creativecommons.org/licenses/by/4.0/> ;
     rdfs:seeAlso   <https://www.w3.org/ns/ssn/> ,
                    <https://www.w3.org/2006/time> ,
                    <http://www.ontology-of-units-of-measure.org/resource/om-2/> ;
@@ -338,7 +339,8 @@ nedt:hasTariff            a owl:ObjectProperty ; rdfs:domain nedt:ElectricLoad ;
 nedt:County              nedt:layer "core-KG-framework"@en ;
     rdfs:seeAlso osi:County , gd:GeoAddress .
 nedt:LVStation           nedt:layer "core-KG-framework"@en ;
-    owl:equivalentClass saragon:Transformer ;
+    rdfs:subClassOf saragon:Transformer ;
+    skos:closeMatch saragon:Transformer ;
     rdfs:seeAlso saragon:DistributionNode .
 nedt:HullPolygon         nedt:layer "core-KG-framework"@en ;
     rdfs:seeAlso geo:Geometry .

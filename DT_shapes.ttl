@@ -243,8 +243,8 @@ nedt:ArchetypeShape
                   sh:message "BER category must be a single letter grade A-G." ] ;
     sh:property [ sh:path nedt:hasOccupancyCategory ;
                   sh:datatype xsd:integer ;
-                  sh:minInclusive 1 ; sh:maxInclusive 5 ; sh:maxCount 1 ;
-                  sh:message "Occupancy category must be an integer in [1,5]." ] .
+                  sh:minInclusive 1 ; sh:maxInclusive 6 ; sh:maxCount 1 ;
+                  sh:message "Occupancy category must be an integer in [1,6]." ] .
 
 nedt:ScenarioShape
     a sh:NodeShape ;
@@ -268,7 +268,7 @@ nedt:CountyShape
     a sh:NodeShape ;
     sh:targetClass nedt:County ;
     sh:property [ sh:path rdfs:label ;
-                  sh:datatype xsd:string ; sh:minCount 1 ;
+                  sh:minCount 1 ;
                   sh:message "Every county must carry a label." ] .
 
 nedt:CapacityKPIShape

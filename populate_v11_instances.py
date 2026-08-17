@@ -26,7 +26,7 @@ TIME = Namespace("http://www.w3.org/2006/time#")
 PROV = Namespace("http://www.w3.org/ns/prov#")
 
 g = Graph()
-g.bind("nedt", CDT)
+g.bind("nedt", NEDT)
 g.bind("inst", INST)
 g.bind("prov", PROV)
 g.bind("sosa", SOSA)
@@ -60,12 +60,18 @@ T(INST.Arch_SD_B2_post2011, RDFS.label, Literal("Detached·B2·post-2011·HP", l
 T(INST.Arch_SD_B2_post2011, NEDT.hasDescriptor, INST.BER_B2)
 T(INST.Arch_SD_B2_post2011, NEDT.hasDescriptor, INST.DType_Detached)
 T(INST.Arch_SD_B2_post2011, NEDT.hasDescriptor, INST.Period_post2011)
+T(INST.Arch_SD_B2_post2011, NEDT.hasBuildType, Literal("Detached"))
+T(INST.Arch_SD_B2_post2011, NEDT.hasBERCategory, Literal("B"))
+T(INST.Arch_SD_B2_post2011, NEDT.hasOccupancyCategory, Literal(2, datatype=XSD.integer))
 
 T(INST.Arch_TH_D1_1971, RDF.type, NEDT.Archetype)
 T(INST.Arch_TH_D1_1971, RDFS.label, Literal("Terraced·D1·1971-1990·Oil", lang="en"))
 T(INST.Arch_TH_D1_1971, NEDT.hasDescriptor, INST.BER_D1)
 T(INST.Arch_TH_D1_1971, NEDT.hasDescriptor, INST.DType_Terraced)
 T(INST.Arch_TH_D1_1971, NEDT.hasDescriptor, INST.Period_1971_1990)
+T(INST.Arch_TH_D1_1971, NEDT.hasBuildType, Literal("Terraced"))
+T(INST.Arch_TH_D1_1971, NEDT.hasBERCategory, Literal("D"))
+T(INST.Arch_TH_D1_1971, NEDT.hasOccupancyCategory, Literal(3, datatype=XSD.integer))
 
 # -----------------------------------------------------------------------------
 # End-use load decomposition (CQ2, CQ4, CQ6)
@@ -85,6 +91,7 @@ for end_use, label in [("space_heat","Space Heat"),("dhw","DHW"),
 # Scenario S2_2035: 40% HP uptake for Arch_TH_D1_1971 in year 2035.
 T(INST.Scenario_S2_2035, RDF.type, NEDT.Scenario)
 T(INST.Scenario_S2_2035, RDFS.label, Literal("S2_2035", lang="en"))
+T(INST.Scenario_S2_2035, NEDT.hasScenarioYear, Literal(2035, datatype=XSD.integer))
 
 T(INST.SP_HP_TH_D1_2035, RDF.type, NEDT.ScenarioParameter)
 T(INST.SP_HP_TH_D1_2035, RDFS.label, Literal("HP uptake", lang="en"))
@@ -111,6 +118,8 @@ T(INST.Scenario_S2_2035, NEDT.hasScenarioParameter, INST.SP_PV_SD_2035)
 # -----------------------------------------------------------------------------
 T(INST.LV_Louth_0412, RDF.type, NEDT.LVStation)
 T(INST.LV_Louth_0412, RDFS.label, Literal("LV_Louth_0412", lang="en"))
+T(INST.LV_Louth_0412, NEDT.hasCapacityValue, Literal("200", datatype=XSD.decimal))
+T(INST.LV_Louth_0412, NEDT.hasCapacityImputed, Literal(False, datatype=XSD.boolean))
 
 T(INST.LVAgg_Louth_0412_S2_2035, RDF.type, NEDT.LVAggregation)
 T(INST.LVAgg_Louth_0412_S2_2035, RDFS.label,
@@ -158,7 +167,7 @@ T(INST.Exp_SD_B2_post2011_S2_2035, SOSA.hasSimpleResult,
 
 # Three example reverse-flow hours at the transformer
 for i, ts in enumerate([
-    "2035-05-12T13:00:00","2035-06-14T14:00:00","2035-07-21T12:00:00"
+    "2035-05-12T13:00:00Z","2035-06-14T14:00:00Z","2035-07-21T12:00:00Z"
 ]):
     r = INST[f"RevFlow_Louth_0412_{i}"]
     T(r, RDF.type, NEDT.ReversePowerFlowHour)
@@ -185,7 +194,7 @@ T(INST.Peak_Louth_2035_S2, NEDT.derivedUnder, INST.Scenario_S2_2035)
 T(INST.Peak_Louth_2035_S2, SOSA.hasSimpleResult,
   Literal("214.3", datatype=XSD.decimal))
 T(INST.Peak_Louth_2035_S2, TIME.inXSDDateTimeStamp,
-  Literal("2035-01-18T18:00:00", datatype=XSD.dateTimeStamp))
+  Literal("2035-01-18T18:00:00Z", datatype=XSD.dateTimeStamp))
 
 # Reinforcement-need flag for the overloaded station
 T(INST.RN_Louth_0412_2035, RDF.type, NEDT.ReinforcementNeed)
@@ -235,7 +244,7 @@ g.serialize(destination=str(ROOT / "DT_instances_v11.ttl"), format="turtle")
 
 # Merge with TBox + prior A-Box for a single self-contained graph
 full = Graph()
-full.bind("cdt", CDT)
+full.bind("nedt", NEDT)
 full.bind("inst", INST)
 full.bind("prov", PROV)
 full.parse(ROOT / "DT_kg.ttl", format="turtle")         # TBox + baseline instances

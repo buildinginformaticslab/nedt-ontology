@@ -19,13 +19,14 @@ from collections import defaultdict, Counter
 from rdflib import Graph, Namespace, Literal, URIRef, BNode
 from rdflib.namespace import OWL, RDF, RDFS, XSD, DCTERMS
 
-ROOT = Path("/Users/divyanshusood/Documents/DT_Model")
+ONTOLOGY_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = ONTOLOGY_ROOT.parent
 NEDT = Namespace("https://example.org/nedt#")
 INST = Namespace("https://example.org/nedt/inst/")
 
 g = Graph()
-g.parse(ROOT / "DT_ontology.ttl", format="turtle")
-g.bind("nedt", CDT)
+g.parse(ONTOLOGY_ROOT / "DT_ontology.ttl", format="turtle")
+g.bind("nedt", NEDT)
 g.bind("inst", INST)
 
 # -----------------------------------------------------------------------------
@@ -35,7 +36,7 @@ def slug(s): return re.sub(r"[^A-Za-z0-9]+", "_", s).strip("_")
 
 counties = set()
 pv_rows  = defaultdict(list)  # county -> list of (year, count, funding)
-with open(ROOT / "CountyAnalysis" / "PV.csv", encoding="utf-8-sig") as f:
+with open(PROJECT_ROOT / "CountyAnalysis" / "PV.csv", encoding="utf-8-sig") as f:
     for row in csv.DictReader(f):
         county = row["County"].replace("Co. ", "").strip()
         counties.add(county)
@@ -64,19 +65,20 @@ for county, entries in pv_rows.items():
 HEAT_MAP = {"Heat Pump": "HeatPump", "Heating Oil": "Oilboiler",
             "gasboiler": "gasboiler", "Solar Thermal": "SolarThermal"}
 DTYPE_MAP = {"Apartment": "Apartment", "Detached": "Detached", "SemiD": "SemiD",
-             "Terraced": "Terraced", "Terraced house": "Terraced", "Bungalow": "Bungalow"}
+             "Terraced": "Terraced", "Terraced house": "Terraced", "Bungalow": "Bungalow",
+             "Duplex": "Apartment", "Temporary Structure": "Terraced"}
 
 arch_seen   = set()
 arch_county = defaultdict(int)   # (arch_key, county) -> count
-dir_ = ROOT / "CountyAnalysis" / "ArchetypeCounts_CountyLevel2024"
+dir_ = PROJECT_ROOT / "CountyAnalysis" / "ArchetypeCounts_CountyLevel2024"
 for fn in sorted(dir_.iterdir()):
     if not fn.name.endswith(".csv"): continue
-    if "National" in fn.name: continue  # aggregate file, no County column
+    if "National" in fn.name or "_LV_" in fn.name: continue
     with open(fn, encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
             dtype = DTYPE_MAP.get(row["Build Type"], row["Build Type"])
-            ber   = row["BER"] or "Unknown"
-            occ   = row["Occupancy"]
+            ber   = (row["BER"] or "Unknown").strip()[:1]
+            occ   = int(float(row["Occupancy"] or 0))
             heat  = HEAT_MAP.get(row["HeatingSystem"], row["HeatingSystem"])
             cty   = row["County"]
             try:
@@ -91,19 +93,18 @@ for fn in sorted(dir_.iterdir()):
 # Create Archetype instances
 for key in sorted(arch_seen):
     dtype, ber, occ, heat = key
-    aid = f"Arch_{dtype}_{ber}_{occ}_{heat}"
+    aid = f"Arch_{slug(dtype)}_{slug(ber)}_{occ}_{slug(heat)}"
     au  = INST[aid]
     g.add((au, RDF.type, NEDT.Archetype))
     g.add((au, RDFS.label, Literal(f"{dtype}·BER {ber}·occ {occ}·{heat}")))
-    g.add((au, NEDT.buildType,     Literal(dtype)))
-    g.add((au, NEDT.berRating,     Literal(ber)))
-    g.add((au, NEDT.occupancy,     Literal(occ)))
-    g.add((au, NEDT.heatingSystem, Literal(heat)))
+    g.add((au, NEDT.hasBuildType, Literal(dtype)))
+    g.add((au, NEDT.hasBERCategory, Literal(ber)))
+    g.add((au, NEDT.hasOccupancyCategory, Literal(occ, datatype=XSD.integer)))
 
 # ArchetypeCount per (archetype, county) — aggregate counts
 for (key, cty), cnt in arch_county.items():
     dtype, ber, occ, heat = key
-    aid = f"Arch_{dtype}_{ber}_{occ}_{heat}"
+    aid = f"Arch_{slug(dtype)}_{slug(ber)}_{occ}_{slug(heat)}"
     cid = f"AC_{aid}_{slug(cty)}"
     ac  = INST[cid]
     g.add((ac, RDF.type, NEDT.ArchetypeCount))
@@ -115,7 +116,7 @@ for (key, cty), cnt in arch_county.items():
 # -----------------------------------------------------------------------------
 # 3) NexsysProfile instances (69 files)
 # -----------------------------------------------------------------------------
-nex_dir = ROOT / "Nexsys data_to divyanshu" / "modified_V1H_results_dynamic"
+nex_dir = PROJECT_ROOT / "CountyAnalysis" / "2024_disaggregated" / "total_electricity copy 2"
 for fn in sorted(nex_dir.iterdir()):
     if not fn.name.endswith(".csv"): continue
     stem = fn.stem
@@ -125,9 +126,9 @@ for fn in sorted(nex_dir.iterdir()):
     pu = INST[f"NexsysProfile_{stem}"]
     g.add((pu, RDF.type, NEDT.NexsysProfile))
     g.add((pu, RDFS.label, Literal(f"Nexsys·{stem}")))
-    g.add((pu, NEDT.sourceFile, Literal(str(fn.relative_to(ROOT)))))
+    g.add((pu, NEDT.sourceFile, Literal(str(fn.relative_to(PROJECT_ROOT)))))
     # link to archetype if direct match exists
-    aid = f"Arch_{dtype}_{ber}_{occ}_{heat}"
+    aid = f"Arch_{slug(dtype)}_{slug(ber)}_{occ}_{slug(heat)}"
     if (dtype, ber, occ, heat) in arch_seen:
         g.add((INST[aid], NEDT.usesProfile, pu))
 
@@ -156,6 +157,7 @@ asis = INST["PVAdoptionScenario_AsIs_2025"]
 g.add((asis, RDF.type, NEDT.PVAdoptionScenario))
 g.add((asis, RDFS.label, Literal("AS-IS PV adoption (SEAI 2018–2025 cumulative)")))
 g.add((asis, NEDT.hasCapacityMix, mix))
+g.add((asis, NEDT.hasScenarioYear, Literal(2025, datatype=XSD.integer)))
 
 # -----------------------------------------------------------------------------
 # 5) KPI hierarchy skeleton
@@ -170,8 +172,8 @@ for sk, lbl in [("PeakLVUtilisation", "Peak LV Utilisation"),
 # -----------------------------------------------------------------------------
 # Serialize
 # -----------------------------------------------------------------------------
-g.serialize(destination=str(ROOT / "DT_kg.ttl"),    format="turtle")
-g.serialize(destination=str(ROOT / "DT_kg.jsonld"), format="json-ld", indent=2)
+g.serialize(destination=str(ONTOLOGY_ROOT / "DT_kg.ttl"),    format="turtle")
+g.serialize(destination=str(ONTOLOGY_ROOT / "DT_kg.jsonld"), format="json-ld", indent=2)
 print(f"KG built: {len(g):,} triples")
 print(f"  Counties:             {len(counties)}")
 print(f"  Archetypes:           {len(arch_seen)}")
@@ -224,7 +226,8 @@ for s, p, o in g:
 top_archs = Counter()
 for (key, _), cnt in arch_county.items():
     top_archs[key] += cnt
-top_arch_ids = {f"Arch_{d}_{b}_{o}_{h}" for (d,b,o,h),_ in top_archs.most_common(15)}
+top_arch_ids = {f"Arch_{slug(d)}_{slug(b)}_{o}_{slug(h)}"
+                for (d, b, o, h), _ in top_archs.most_common(15)}
 
 keep = set()
 for u in instance_uris:
@@ -232,9 +235,11 @@ for u in instance_uris:
     if name.startswith("County_"):              keep.add(u)
     elif name.startswith("Arch_") and name in top_arch_ids: keep.add(u)
     elif name.startswith("AC_") and any(name.startswith(f"AC_{aid}_") for aid in top_arch_ids): keep.add(u)
-    elif name.startswith("NexsysProfile_") and any((d in name and b in name and o in name and h in name)
-                                                   for (d,b,o,h) in top_archs.keys()
-                                                   if f"Arch_{d}_{b}_{o}_{h}" in top_arch_ids): keep.add(u)
+    elif name.startswith("NexsysProfile_") and any(
+            d in name and b in name and str(o) in name and h in name
+            for (d, b, o, h) in top_archs.keys()
+            if f"Arch_{slug(d)}_{slug(b)}_{o}_{slug(h)}" in top_arch_ids):
+        keep.add(u)
     elif name.startswith(("PVCapacityBin_","PVCapacityMix_","PVReferenceShape_",
                           "PVAdoptionScenario_","KPI_")): keep.add(u)
 
@@ -296,7 +301,7 @@ net.set_options("""var options = {
   "nodes":     {"scaling": {"min": 8, "max": 40}},
   "edges":     {"smooth": {"enabled": true, "type": "dynamic"}}
 }""")
-out = ROOT / "DT_kg_viewer.html"
+out = ONTOLOGY_ROOT / "DT_kg_viewer.html"
 net.save_graph(str(out))
 
 # Inject: freeze physics once stable + click-to-inspect side panel

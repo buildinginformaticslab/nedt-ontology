@@ -1,25 +1,25 @@
+@prefix ex: <https://example.org/nedt-test#> .
 @prefix nedt: <https://example.org/nedt#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
-@prefix ex:   <https://example.org/test#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-ex:cork a nedt:County ; rdfs:label "Cork" .
-ex:arch_ok a nedt:Archetype ; nedt:hasBuildType "Detached" ; nedt:hasBERCategory "C" ; nedt:hasOccupancyCategory 4 .
-ex:scn_ok  a nedt:Scenario ; nedt:hasScenarioYear 2030 ; nedt:hasHPAdoptionFraction "0.2"^^xsd:decimal .
-
-# TRAP 1: station with imputed capacity not declared
-ex:lv_bad1 a nedt:LVStation ; nedt:hasCapacityValue "200.0"^^xsd:decimal .
-# TRAP 2: implausible capacity
-ex:lv_bad2 a nedt:LVStation ; nedt:hasCapacityValue "99999.0"^^xsd:decimal ; nedt:hasCapacityImputed false .
-# TRAP 3: dwelling assigned 45 km away (failed spatial join)
-ex:dw_bad a nedt:Dwelling ; nedt:locatedInCounty ex:cork ;
-    nedt:instantiatesArchetype ex:arch_ok ; nedt:isServedBy ex:lv_bad2 ;
-    nedt:hasAssignmentDistanceM "45000.0"^^xsd:decimal .
-# TRAP 4: archetype with BER outside A-G
-ex:arch_bad a nedt:Archetype ; nedt:hasBuildType "Castle" ; nedt:hasBERCategory "Z" .
-# TRAP 5: KPI with no scenario scope and no provenance
-ex:kpi_bad a nedt:CapacityKPI ; nedt:forLVStation ex:lv_bad2 ;
-    nedt:hasPeakDemandKW "120.0"^^xsd:decimal ; nedt:hasRatedCapacityKVA "50.0"^^xsd:decimal ;
-    nedt:hasUtilisation "2.4"^^xsd:decimal ; nedt:hasOverloadHours 99999 .
-# TRAP 6: county aggregate hiding its calibration factor
-ex:agg_bad a nedt:CountyDemandAggregate ; nedt:forCounty ex:cork .
+# Deliberately invalid fixtures. The validation test must reject all of them.
+ex:dwelling-no-station a nedt:Dwelling ;
+  nedt:locatedInCounty ex:county ; nedt:instantiatesArchetype ex:archetype .
+ex:station-negative-capacity a nedt:LVStation ;
+  nedt:hasCapacityValue "-1"^^xsd:decimal ; nedt:hasCapacityImputed false .
+ex:scenario-invalid-fraction a nedt:Scenario ;
+  nedt:hasScenarioYear 2024 ; nedt:hasHPAdoptionFraction "1.2"^^xsd:decimal .
+ex:archetype-invalid-ber a nedt:Archetype ;
+  nedt:hasBuildType "Detached" ; nedt:hasBERCategory "Z" ;
+  nedt:hasOccupancyCategory 3 .
+ex:kpi-no-provenance a nedt:CapacityKPI ;
+  nedt:forLVStation ex:station ; nedt:evaluatedUnderScenario ex:scenario ;
+  nedt:hasPeakDemandKW "10"^^xsd:decimal ;
+  nedt:hasRatedCapacityKVA "20"^^xsd:decimal ; nedt:hasUtilisation "0.5"^^xsd:decimal .
+ex:transition-negative a nedt:TechnologyTransition ;
+  nedt:fromArchetype ex:a ; nedt:toArchetype ex:b ; nedt:transitionCount -1 .
+ex:observation-no-time a nedt:ValidationObservation ;
+  nedt:hasMeasuredValue "1"^^xsd:decimal .
+ex:county-no-label a nedt:County .
+ex:aggregate-no-calibration a nedt:CountyDemandAggregate .
