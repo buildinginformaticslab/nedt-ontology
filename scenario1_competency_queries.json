@@ -1,9 +1,9 @@
 {
-  "triples": 577655,
+  "triples": 764115,
   "queries": {
     "CQ3_scenario_parameters": {
       "rows": 1,
-      "elapsed_ms": 57.995,
+      "elapsed_ms": 86.884,
       "sample": [
         [
           "https://example.org/nedt/inst/scenario_1_2024",
@@ -15,7 +15,7 @@
     },
     "CQ6_over_capacity_stations": {
       "rows": 3378,
-      "elapsed_ms": 2160.7,
+      "elapsed_ms": 2393.583,
       "sample": [
         [
           "https://example.org/nedt/inst/s1_lv_station_BA___166Z_0002c9ac54",
@@ -51,7 +51,7 @@
     },
     "CQ12_provenance_trace": {
       "rows": 10,
-      "elapsed_ms": 3.945,
+      "elapsed_ms": 3.315,
       "sample": [
         [
           "https://example.org/nedt/inst/capacity_kpi_s1_01___071Z_8c01b068a6",
@@ -77,7 +77,7 @@
     },
     "CQ1_county_archetype_inventory": {
       "rows": 26,
-      "elapsed_ms": 107.834,
+      "elapsed_ms": 99.503,
       "sample": [
         [
           "https://example.org/nedt/inst/County_Carlow",

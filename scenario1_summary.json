@@ -7,8 +7,11 @@
   "pv_eligible_installations": 183108,
   "red": 3378,
   "near": 693,
-  "peak_utilisation": 11.546206462811679,
+  "utilisation_p95": 1.3676082272529586,
+  "utilisation_p99": 2.649326702475547,
+  "maximum_utilisation": 11.546206462811679,
   "mv_red": 0,
   "mv_near": 0,
-  "stations_requiring_asset_audit": 46
+  "stations_requiring_asset_audit": 46,
+  "stations_with_count_reconciliation_flag": 6656
 }

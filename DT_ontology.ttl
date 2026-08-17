@@ -1026,6 +1026,10 @@ nedt:changesTechnologyState a owl:ObjectProperty ;
 nedt:forLVStation     a owl:ObjectProperty ;
     rdfs:domain nedt:CapacityKPI ; rdfs:range nedt:LVStation ;
     rdfs:label "for LV station"@en .
+nedt:scenarioStateOf a owl:ObjectProperty ;
+    rdfs:domain nedt:LVStation ; rdfs:range nedt:LVStation ;
+    rdfs:label "scenario state of station"@en ;
+    rdfs:comment "Links a scenario-scoped station representation to the canonical physical asset identity."@en .
 
 nedt:forCounty        a owl:ObjectProperty ;
     rdfs:range nedt:County ;
@@ -1097,6 +1101,23 @@ nedt:hasCapacityImputed a owl:DatatypeProperty ;
     rdfs:domain nedt:LVStation ; rdfs:range xsd:boolean ;
     rdfs:label "capacity imputed"@en ;
     rdfs:comment "True where the rated capacity was not available from the source asset register and a default was substituted. Consumers must treat utilisation for such stations as indicative only." .
+
+nedt:hasAssignedDwellingCount a owl:DatatypeProperty ;
+    rdfs:domain nedt:LVStation ; rdfs:range xsd:integer ;
+    rdfs:label "assigned dwelling count"@en ;
+    rdfs:comment "Dwelling total in the independent building-to-station assignment input used for reconciliation diagnostics."@en .
+nedt:hasArchetypeToAssignmentRatio a owl:DatatypeProperty ;
+    rdfs:domain nedt:CapacityKPI ; rdfs:range xsd:decimal ;
+    rdfs:label "archetype-to-assignment ratio"@en ;
+    rdfs:comment "Ratio of the archetype population used in a station demand calculation to the independently assigned dwelling total."@en .
+nedt:hasCountReconciliationFlag a owl:DatatypeProperty ;
+    rdfs:domain nedt:CapacityKPI ; rdfs:range xsd:boolean ;
+    rdfs:label "count reconciliation flag"@en ;
+    rdfs:comment "True when archetype and building-assignment counts differ by more than 20 percent; it is a diagnostic, not an exclusion."@en .
+nedt:requiresAssetAudit a owl:DatatypeProperty ;
+    rdfs:domain nedt:CapacityKPI ; rdfs:range xsd:boolean ;
+    rdfs:label "requires asset audit"@en ;
+    rdfs:comment "True for an extreme model output requiring asset-register and connectivity reconciliation before planning interpretation."@en .
 
 nedt:hasMeasuredValue a owl:DatatypeProperty ;
     rdfs:domain nedt:ValidationObservation ; rdfs:range xsd:decimal ;

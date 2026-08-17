@@ -108,15 +108,36 @@ def main() -> int:
                 mv_acc[parent] = mv_acc.get(parent, 0) + block[j]
         print(f"{end:,}/{len(stations):,}",end="\r")
     d=pd.DataFrame({"k":stations,"n_bldg":a.groupby("k").n.sum().reindex(stations).to_numpy(),"peak_kw":peaks,"annual_kwh":annual,"designed_kva":cap.reindex(stations).fillna(pc.DEFAULT_KVA).to_numpy(),"kva_imputed":cap.reindex(stations).isna().to_numpy(),"overload_hours":hours})
-    d["utilisation"]=d.peak_kw/d.designed_kva; d.to_csv(out/"lv_scenario1.csv",index=False)
+    d["utilisation"]=d.peak_kw/d.designed_kva
+    # Reconcile the profile/archetype population with the independent
+    # building-to-station assignment before interpreting individual assets.
+    # This is a diagnostic, not a post-hoc exclusion: all stations remain in
+    # national model-screened counts and in the RDF result graph.
+    bldg = pd.read_csv(pc.BLDG, usecols=["Station Name", "Dwellings"], low_memory=False)
+    bldg["k"] = pc.norm_station(bldg["Station Name"])
+    assigned = bldg.groupby("k").Dwellings.sum()
+    d["assigned_dwellings"] = d.k.map(assigned)
+    d["archetype_to_assignment_ratio"] = d.n_bldg / d.assigned_dwellings
+    d["audit_count_reconciliation"] = (
+        d.assigned_dwellings.notna()
+        & ~d.archetype_to_assignment_ratio.between(0.8, 1.2)
+    )
     # Outliers are retained in the results but explicitly flagged for asset or
     # connectivity review rather than treated as routine reinforcement cases.
     d["audit_extreme_utilisation"] = d.utilisation > 5.0
     d["audit_large_catchment"] = d.n_bldg > 1000
     d["requires_asset_audit"] = d.audit_extreme_utilisation | d.audit_large_catchment
     d.to_csv(out/"lv_scenario1.csv",index=False)
-    d.loc[d.requires_asset_audit].sort_values("utilisation", ascending=False).to_csv(
-        out/"station_data_quality_audit.csv", index=False)
+    # Attach the published availability snapshot for a compact reconciliation
+    # artefact.  It is not treated as time-aligned overload ground truth.
+    esb = pd.read_csv(pc.ESB)
+    esb["k"] = pc.norm_station(esb["Station Name"])
+    audit = d.loc[d.requires_asset_audit].merge(
+        esb[["k", "installed_kva", "available_kva", "esb_load_kva", "esb_util", "esb_constrained"]],
+        on="k", how="left",
+    ).sort_values("utilisation", ascending=False)
+    audit.to_csv(out/"station_data_quality_audit.csv", index=False)
+    audit.to_csv(out/"asset_reconciliation_exceptions.csv", index=False)
     mv_cap = pd.read_csv(HERE / "rerun_out" / "mv_onebasis.csv")[["key", "designed_kva_mv"]].drop_duplicates("key").set_index("key").designed_kva_mv
     mv = pd.DataFrame({"mv_parent": list(mv_acc), "peak_kw": [v.max() for v in mv_acc.values()]})
     mv["designed_kva"] = mv.mv_parent.map(mv_cap); mv = mv.dropna(subset=["designed_kva"]).copy()
@@ -132,10 +153,13 @@ def main() -> int:
         "pv_eligible_installations": int(round((a["Build Type"].map(pv_kwp) > 0).mul(a.n).sum() * .10)),
         "red": int((d.utilisation > 1).sum()),
         "near": int(((d.utilisation >= .9) & (d.utilisation <= 1)).sum()),
-        "peak_utilisation": float(d.utilisation.max()),
+        "utilisation_p95": float(d.utilisation.quantile(.95)),
+        "utilisation_p99": float(d.utilisation.quantile(.99)),
+        "maximum_utilisation": float(d.utilisation.max()),
         "mv_red": int((mv.utilisation > 1).sum()),
         "mv_near": int(((mv.utilisation >= .9) & (mv.utilisation <= 1)).sum()),
         "stations_requiring_asset_audit": int(d.requires_asset_audit.sum()),
+        "stations_with_count_reconciliation_flag": int(d.audit_count_reconciliation.sum()),
     }
     (out/"scenario1_summary.json").write_text(json.dumps(summary,indent=2)+"\n"); print("\n",summary)
     return 0

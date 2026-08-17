@@ -9,15 +9,23 @@
     },
     {
       "path": "AEI-2006-PredictiveEnergyModelling/scenario1_percatchment.py",
-      "sha256": "ea59b81021e3cea6a8ec556d985cc591ac2a3ffd49e619c772690f08343ba380"
+      "sha256": "644fd6bd2604ce00d794ca8ae286ec7880ccf6d765acda42239a4397d6b11c39"
     },
     {
-      "path": "AEI-2006-PredictiveEnergyModelling/rerun_out/lv_scenario1_onebasis.csv",
-      "sha256": "f24b1ead89b7ebb5c19ee89e3b7c5cabfd03c1438c162c5c728143bcdae215a3"
+      "path": "AEI-2006-PredictiveEnergyModelling/results/scenario1/lv_scenario1.csv",
+      "sha256": "3c30f658362d09782abeba76bd1dccfbd96dc1b8a7855344efde70d538e8d010"
+    },
+    {
+      "path": "AEI-2006-PredictiveEnergyModelling/results/scenario1/asset_reconciliation_exceptions.csv",
+      "sha256": "7be7aabe8917669388752bd1eb9f86d6c0b49f2514ecb995e5904b49d2e5f397"
+    },
+    {
+      "path": "AEI-2006-PredictiveEnergyModelling/results/scenario1/scenario1_summary.json",
+      "sha256": "e22d8516b5fa440e1f744cf602707ef2bc2a817b537de953f1a79bbde13cf084"
     },
     {
       "path": "AEI-2006-PredictiveEnergyModelling/export_scenario_results_to_rdf.py",
-      "sha256": "42ca87044c715bfafdf073e80f33bdeefcac1c5b3acfdd255ad9ea3469644697"
+      "sha256": "64486af25e481e2ad191ec8ec21b4257223fbf92227bb0ef832e71d01aa56c38"
     },
     {
       "path": "AEI-2006-PredictiveEnergyModelling/run_competency_queries.py",
@@ -25,7 +33,7 @@
     },
     {
       "path": "ontology/DT_ontology.ttl",
-      "sha256": "ed586f0afb734c054d66942e58e03a56415097dd72547f9f1bca29fea292f65d"
+      "sha256": "26456098ebba7703b9b9dbead0ae919a3fa9e32f0063935e20fb7b2a4e1fd5a8"
     },
     {
       "path": "ontology/DT_shapes.ttl",
@@ -33,17 +41,17 @@
     },
     {
       "path": "ontology/scenario1_results.ttl",
-      "sha256": "5fc99d59c07c88ae63cc6c1b711a2d5ecc966383da33caee66caf681596aa5cd"
+      "sha256": "244ba4f998a3a4cbad817a9d520bc95b77caeba978e9d628a8660d41fbed4d5a"
     },
     {
       "path": "AEI-2006-PredictiveEnergyModelling/results/scenario1/competency_queries.json",
-      "sha256": "dff16997aa8003b6b79a8cb3252fad424b6f036d0919f61e5150cd2f0d45cc6c"
+      "sha256": "e5c41e6277d8390590721785bdbad336ba7265cfdab531530316de6e01d301cc"
     }
   ],
   "commands": [
     "python3 AEI-2006-PredictiveEnergyModelling/rerun_percatchment.py --out AEI-2006-PredictiveEnergyModelling/rerun_out",
     "python3 AEI-2006-PredictiveEnergyModelling/scenario1_percatchment.py",
-    "python3 AEI-2006-PredictiveEnergyModelling/export_scenario_results_to_rdf.py --input AEI-2006-PredictiveEnergyModelling/rerun_out/lv_scenario1_onebasis.csv",
+    "python3 AEI-2006-PredictiveEnergyModelling/export_scenario_results_to_rdf.py --input AEI-2006-PredictiveEnergyModelling/results/scenario1/lv_scenario1.csv",
     "python3 AEI-2006-PredictiveEnergyModelling/run_competency_queries.py",
     "python3 ontology/validate_shapes.py"
   ]

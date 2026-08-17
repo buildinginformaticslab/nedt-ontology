@@ -84,19 +84,33 @@ def main() -> int:
         # use a scenario-scoped identifier and avoid silently coalescing two
         # independently sourced capacity assertions.
         station = INST[f"s1_lv_station_{slug(row.k)}"]
+        physical_station = INST[f"lv_station_{slug(row.k)}"]
         kpi = INST[f"capacity_kpi_s1_{slug(row.k)}"]
         util = INST[f"utilisation_s1_{slug(row.k)}"]
         graph.add((station, RDF.type, NEDT.LVStation))
+        graph.add((station, NEDT.scenarioStateOf, physical_station))
         graph.add((station, RDFS.label, Literal(str(row.k))))
         graph.add((station, NEDT.hasCapacityValue, decimal(row.designed_kva)))
         graph.add((station, NEDT.hasCapacityImputed,
                    Literal(bool(row.kva_imputed) if hasattr(row, "kva_imputed") else False,
                            datatype=XSD.boolean)))
+        if hasattr(row, "assigned_dwellings") and pd.notna(row.assigned_dwellings):
+            graph.add((station, NEDT.hasAssignedDwellingCount,
+                       Literal(int(row.assigned_dwellings), datatype=XSD.integer)))
         graph.add((kpi, RDF.type, NEDT.CapacityKPI))
         graph.add((kpi, NEDT.forLVStation, station))
         graph.add((kpi, NEDT.evaluatedUnderScenario, scenario))
         graph.add((kpi, NEDT.hasPeakDemandKW, decimal(row.peak_kw)))
         graph.add((kpi, NEDT.hasRatedCapacityKVA, decimal(row.designed_kva)))
+        if hasattr(row, "archetype_to_assignment_ratio") and pd.notna(row.archetype_to_assignment_ratio):
+            graph.add((kpi, NEDT.hasArchetypeToAssignmentRatio,
+                       decimal(row.archetype_to_assignment_ratio)))
+        if hasattr(row, "audit_count_reconciliation"):
+            graph.add((kpi, NEDT.hasCountReconciliationFlag,
+                       Literal(bool(row.audit_count_reconciliation), datatype=XSD.boolean)))
+        if hasattr(row, "requires_asset_audit"):
+            graph.add((kpi, NEDT.requiresAssetAudit,
+                       Literal(bool(row.requires_asset_audit), datatype=XSD.boolean)))
         if hasattr(row, "overload_hours"):
             graph.add((kpi, NEDT.hasOverloadHours,
                        Literal(int(row.overload_hours), datatype=XSD.integer)))
