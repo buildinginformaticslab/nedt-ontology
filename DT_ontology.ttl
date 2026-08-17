@@ -38,8 +38,8 @@ nedt:layer  a owl:AnnotationProperty ;
                    "Sharon Coffee" ,
                    "James O'Donnell" ;
     dct:description "An OWL ontology describing building archetypes, hourly energy profiles, LV-network attribution, scenarios (including rooftop-PV adoption), KPI evaluation and visualisation components of the National Energy Digital Twin (NEDT) for Ireland."@en ;
-    dct:issued     "2026-04-20"^^xsd:date ;
-    dct:modified   "2026-07-16"^^xsd:date ;
+    dct:issued     "2026-04-20T00:00:00Z"^^xsd:dateTime ;
+    dct:modified   "2026-07-16T00:00:00Z"^^xsd:dateTime ;
     owl:versionInfo "1.4.0" ;
     rdfs:seeAlso   <https://www.w3.org/ns/ssn/> ,
                    <https://www.w3.org/2006/time> ,
@@ -256,7 +256,7 @@ nedt:eligibleBER          a owl:DatatypeProperty ; rdfs:domain nedt:PVSystem ; r
 nedt:installedCapacity_kWp a owl:DatatypeProperty ; rdfs:domain nedt:PVSystem ; rdfs:range xsd:decimal .
 nedt:adoptionFraction     a owl:DatatypeProperty ; rdfs:domain nedt:PVAdoptionScenario ; rdfs:range xsd:decimal ;
     rdfs:comment "Fraction of eligible (non-apartment) dwellings that have PV installed." .
-nedt:grantYear            a owl:DatatypeProperty ; rdfs:domain nedt:SEAIGrantRecord ; rdfs:range xsd:gYear .
+nedt:grantYear            a owl:DatatypeProperty ; rdfs:domain nedt:SEAIGrantRecord ; rdfs:range xsd:integer .
 nedt:grantCount           a owl:DatatypeProperty ; rdfs:domain nedt:SEAIGrantRecord ; rdfs:range xsd:integer .
 nedt:grantFundingEUR      a owl:DatatypeProperty ; rdfs:domain nedt:SEAIGrantRecord ; rdfs:range xsd:decimal .
 
@@ -532,7 +532,7 @@ nedt:hasScenarioParameter a owl:ObjectProperty ; rdfs:domain nedt:Scenario ; rdf
     rdfs:label "has scenario parameter"@en .
 nedt:forArchetype         a owl:ObjectProperty ; rdfs:domain nedt:ScenarioParameter ; rdfs:range nedt:Archetype ;
     rdfs:label "for archetype"@en .
-nedt:forYear              a owl:DatatypeProperty ; rdfs:domain nedt:ScenarioParameter ; rdfs:range xsd:gYear ;
+nedt:forYear              a owl:DatatypeProperty ; rdfs:domain nedt:ScenarioParameter ; rdfs:range xsd:integer ;
     rdfs:label "for year"@en .
 nedt:uptakeValue          a owl:DatatypeProperty ; rdfs:domain nedt:ScenarioParameter ; rdfs:range xsd:decimal ;
     rdfs:label "uptake value"@en ;
@@ -548,11 +548,11 @@ nedt:contributionPercent  a owl:DatatypeProperty ; rdfs:domain nedt:EndUseContri
     rdfs:comment "Share 0-100 of the overload attributable to this end-use."@en .
 nedt:evaluatesCounty      a owl:ObjectProperty ; rdfs:domain nedt:KPIValue ; rdfs:range nedt:County ;
     rdfs:label "evaluates county"@en .
-nedt:evaluatesYear        a owl:DatatypeProperty ; rdfs:domain nedt:KPIValue ; rdfs:range xsd:gYear ;
+nedt:evaluatesYear        a owl:DatatypeProperty ; rdfs:domain nedt:KPIValue ; rdfs:range xsd:integer ;
     rdfs:label "evaluates year"@en .
 nedt:derivedUnder         a owl:ObjectProperty ; rdfs:domain nedt:KPIValue ; rdfs:range nedt:Scenario ;
     rdfs:label "derived under scenario"@en .
-nedt:firstBreachYear      a owl:DatatypeProperty ; rdfs:domain nedt:ReinforcementNeed ; rdfs:range xsd:gYear ;
+nedt:firstBreachYear      a owl:DatatypeProperty ; rdfs:domain nedt:ReinforcementNeed ; rdfs:range xsd:integer ;
     rdfs:label "first breach year"@en .
 nedt:breachHours          a owl:DatatypeProperty ; rdfs:domain nedt:ReinforcementNeed ; rdfs:range xsd:integer ;
     rdfs:label "breach hours per year"@en .
@@ -965,13 +965,31 @@ nedt:isServedBy       a owl:ObjectProperty , owl:FunctionalProperty ;
 
 nedt:hasParentMVFeeder a owl:ObjectProperty ;
     rdfs:domain nedt:LVStation ; rdfs:range nedt:MVFeeder ;
-    rdfs:subPropertyOf nedt:isProvidedBy ;
+    rdfs:subPropertyOf nedt:hasUpstreamAsset ;
     rdfs:label "has parent MV feeder"@en .
 
 nedt:hasParentHVSubstation a owl:ObjectProperty ;
     rdfs:domain nedt:MVFeeder ; rdfs:range nedt:HVSubstation ;
-    rdfs:subPropertyOf nedt:isProvidedBy ;
+    rdfs:subPropertyOf nedt:hasUpstreamAsset ;
     rdfs:label "has parent HV substation"@en .
+
+nedt:NetworkAsset     a owl:Class ;
+    rdfs:label "Network Asset"@en ;
+    rdfs:comment "Any electricity-network asset in the LV/MV/HV hierarchy." .
+nedt:LVStation    rdfs:subClassOf nedt:NetworkAsset .
+nedt:MVFeeder     rdfs:subClassOf nedt:NetworkAsset .
+nedt:HVSubstation rdfs:subClassOf nedt:NetworkAsset .
+
+nedt:hasUpstreamAsset a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:domain nedt:NetworkAsset ; rdfs:range nedt:NetworkAsset ;
+    rdfs:label "has upstream asset"@en ;
+    rdfs:comment "Transitive super-property of the parent-link properties. Because hasParentMVFeeder and hasParentHVSubstation are both sub-properties, an OWL 2 reasoner entails the full LV -> MV -> HV chain from the two published one-step links, so demand can be rolled up to any tier without materialising the closure in the A-Box." .
+
+nedt:feeds            a owl:ObjectProperty , owl:TransitiveProperty ;
+    owl:inverseOf nedt:hasUpstreamAsset ;
+    rdfs:domain nedt:NetworkAsset ; rdfs:range nedt:NetworkAsset ;
+    rdfs:label "feeds"@en ;
+    rdfs:comment "Downstream direction of hasUpstreamAsset; aligned in intent with the SARAGON feeds relation." .
 
 nedt:hasServiceArea   a owl:ObjectProperty ;
     rdfs:domain nedt:LVStation ; rdfs:range geo:Feature ;

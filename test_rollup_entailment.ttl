@@ -1,0 +1,5 @@
+@prefix nedt: <https://example.org/nedt#> .
+@prefix ex:   <https://example.org/test#> .
+ex:lv1 a nedt:LVStation    ; nedt:hasParentMVFeeder     ex:mv1 .
+ex:mv1 a nedt:MVFeeder     ; nedt:hasParentHVSubstation ex:hv1 .
+ex:hv1 a nedt:HVSubstation .
