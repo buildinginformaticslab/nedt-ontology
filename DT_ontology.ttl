@@ -1078,6 +1078,10 @@ nedt:hasEVAdoptionFraction a owl:DatatypeProperty ;
     rdfs:domain nedt:Scenario ; rdfs:range xsd:decimal ; rdfs:label "EV adoption fraction"@en .
 nedt:hasPVAdoptionFraction a owl:DatatypeProperty ;
     rdfs:domain nedt:Scenario ; rdfs:range xsd:decimal ; rdfs:label "PV adoption fraction"@en .
+nedt:hasHPEVCoAdoptionCount a owl:DatatypeProperty ;
+    rdfs:domain nedt:Scenario ; rdfs:range xsd:integer ;
+    rdfs:label "HP-EV co-adoption count"@en ;
+    rdfs:comment "Number of incremental EV assignments allocated to heat-pump-transition cohorts under a scenario."@en .
 
 nedt:transitionCount  a owl:DatatypeProperty ;
     rdfs:domain nedt:TechnologyTransition ; rdfs:range xsd:integer ;

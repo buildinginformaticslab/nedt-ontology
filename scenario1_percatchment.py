@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+"""Executable Scenario 1, using the NEDT notebook's HP/EV/PV semantics.
+
+This runner retains the paper's allocate-then-maximise station operator while
+using the notebook's technology transitions: C--E oil/gas homes move to BER-A
+heat-pump profiles; EV adoption targets 10% of national private-car stock;
+and PV is derived from Nexsys ``PV generation`` sheets.  Outputs are the
+station table consumed by the RDF exporter and a compact JSON summary.
+"""
+from __future__ import annotations
+import hashlib, importlib.util, json
+from collections import defaultdict
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from scipy import sparse
+
+HERE = Path(__file__).resolve().parent
+spec = importlib.util.spec_from_file_location("pc", HERE / "rerun_percatchment.py")
+pc = importlib.util.module_from_spec(spec); assert spec.loader; spec.loader.exec_module(pc)
+ROOT = pc.ROOT
+
+PV_XLSX = ROOT / "EV_profiles" / "modified_uncontrolled_results_dynamic.xlsx"
+
+
+def hamilton(values: pd.Series, total: int) -> pd.Series:
+    """Deterministic largest-remainder integer allocation."""
+    out = pd.Series(0, index=values.index, dtype=int)
+    if total <= 0 or values.sum() <= 0: return out
+    raw = values.astype(float) / values.sum() * total
+    out = np.floor(raw).astype(int)
+    for i in (raw - out).sort_values(ascending=False, kind="stable").index[:total-int(out.sum())]: out.loc[i] += 1
+    return out
+
+
+def pv_shape() -> np.ndarray:
+    """Exact notebook construction: average peak-normalised Nexsys curves."""
+    xls = pd.ExcelFile(PV_XLSX); shapes = []
+    for sheet in xls.sheet_names:
+        frame = xls.parse(sheet)
+        if "PV generation" not in frame: continue
+        v = pd.to_numeric(frame["PV generation"], errors="coerce").fillna(0).to_numpy(float)
+        if len(v) < 8000 or v.max() <= 0: continue
+        v = v[:pc.HOURS] if len(v) >= pc.HOURS else np.pad(v, (0, pc.HOURS-len(v)))
+        shapes.append(v / v.max())
+    if not shapes: raise ValueError("no valid Nexsys PV generation sheets")
+    return np.mean(shapes, axis=0) * (1000.0 / 1284.0)
+
+
+def pv_kwp(build: str) -> float:
+    s = str(build).lower()
+    if "apartment" in s or "flat" in s: return 0.0
+    if "terrace" in s: return 2.5
+    if "semi" in s: return 3.5
+    if "detached" in s or "bungalow" in s: return 4.0
+    return 0.0
+
+
+def main() -> int:
+    out = HERE / "results" / "scenario1"; out.mkdir(parents=True, exist_ok=True)
+    a = pd.read_csv(pc.COUNTS); a["k"] = pc.norm_station(a["Station Name"])
+    a["BER"] = a.BER.astype(str).str.strip().str[0]; a["Occupancy"] = pd.to_numeric(a.Occupancy, errors="coerce").fillna(3).astype(int)
+    a["n"] = a.ArchCount_original_2024_LV.astype(int); a["ev"] = a.ArchCount_EV2024_LV.fillna(0).astype(int); a["noev"] = a.ArchCount_NoEV2024_LV.fillna(0).astype(int)
+    # Notebook HP move: 20% oil/gas BER C--E, rounded within build/occupancy/weather groups.
+    eligible = a.BER.isin(list("CDE")) & a.HeatingSystem.isin(["Heating Oil", "gasboiler"])
+    a["hp_move"] = 0
+    for _, ix in a[eligible].groupby(["Build Type", "Occupancy", "WeatherClassification"], sort=True).groups.items():
+        vals = a.loc[ix, "n"] * .20
+        a.loc[ix, "hp_move"] = hamilton(vals, int(round(vals.sum()))).values
+    a["hp_move"] = np.minimum(a.hp_move, a.n).astype(int)
+    a["hp_ev"] = np.minimum(np.rint(a.hp_move * a.ev / a.n.replace(0, 1)).astype(int), a.ev)
+    a["hp_noev"] = a.hp_move - a.hp_ev
+    # Components preserve station identity; each can be assigned a profile independently.
+    base = a.assign(HeatingSystem=a.HeatingSystem, count=a.n-a.hp_move, ev_count=a.ev-a.hp_ev, noev_count=a.noev-a.hp_noev, hp_transition=False)
+    moved = a[a.hp_move > 0].copy(); moved["HeatingSystem"] = "Heat Pump"; moved["BER"] = "A"; moved["count"] = moved.hp_move; moved["ev_count"] = moved.hp_ev; moved["noev_count"] = moved.hp_noev; moved["hp_transition"] = True
+    c = pd.concat([base, moved], ignore_index=True); c = c[c["count"] > 0].copy()
+    # Notebook target is 10% of private-car stock, with only an incremental EV shift.
+    cars = pd.read_csv(ROOT / "CountyAnalysis" / "private_car_stock_county.csv", thousands=",")
+    target = int(round(float(cars.loc[cars.iloc[:,0].astype(str).str.lower().eq("ireland"), "2024"].iloc[0]) * .10))
+    delta = max(0, target - int(c.ev_count.sum()))
+    add_ev = hamilton(c.noev_count, min(delta, int(c.noev_count.sum())))
+    c["ev_count"] += add_ev; c["noev_count"] -= add_ev
+    c["ev_added"] = add_ev
+    hp_ev_coadoption = int(c.loc[c.hp_transition, "ev_added"].sum())
+    noev_lib, ev_lib = pc.scan_library(pc.ELEC)
+    def file_for(row, lib): return pc.resolve(lib, row["Build Type"], row.BER, row.Occupancy, row.HeatingSystem)[0]
+    c["f_noev"] = c.apply(lambda r: file_for(r, noev_lib), axis=1); c["f_ev"] = c.apply(lambda r: file_for(r, ev_lib), axis=1)
+    c = c[c.f_noev.notna()].copy()
+    names = set(c.f_noev.dropna()) | set(c.f_ev.dropna()); pidx, P = pc.load_profiles(names, pc.ELEC)
+    stations = pd.Index(sorted(c.k.unique())); si = pd.Series(range(len(stations)), index=stations)
+    rows = c.k.map(si).to_numpy(); nprof = len(pidx)
+    S0 = sparse.csr_matrix((c.noev_count.to_numpy(float), (rows, c.f_noev.map(pidx).to_numpy())), shape=(len(stations),nprof))
+    evok = c.f_ev.notna().to_numpy(); S1 = sparse.csr_matrix((c.loc[evok,"ev_count"].to_numpy(float),(rows[evok],c.loc[evok,"f_ev"].map(pidx).to_numpy())),shape=(len(stations),nprof))
+    # PV uses baseline building composition and notebook building-type capacities.
+    pv_per_station = a.assign(kwp=a["Build Type"].map(pv_kwp), pv_n=lambda x: x.n*.10).assign(pv_kwp=lambda x:x.kwp*x.pv_n).groupby("k").pv_kwp.sum().reindex(stations).fillna(0).to_numpy()
+    shape = pv_shape(); cap = pd.read_csv(pc.CAP); cap["k"] = pc.norm_station(cap["Station Name"]); cap = cap.drop_duplicates("k").set_index("k").designed_kva
+    peaks=np.zeros(len(stations)); hours=np.zeros(len(stations),dtype=int); annual=np.zeros(len(stations))
+    network = pd.read_csv(pc.LVNET); network["k"] = pc.norm_station(network["Station Name"])
+    network["mv_parent"] = network.Parent_Station.astype(str).str.split(":").str.split("[").str[0].str.strip().str.upper()
+    mv_parent = pd.Series(stations).map(network.drop_duplicates("k").set_index("k").mv_parent).to_numpy()
+    mv_acc = {}
+    for start in range(0,len(stations),2000):
+        end=min(start+2000,len(stations)); block=(S0[start:end]@P)+(S1[start:end]@P)-pv_per_station[start:end,None]*shape[None,:]
+        block=np.maximum(block,0); peaks[start:end]=block.max(1); annual[start:end]=block.sum(1)
+        caps=cap.reindex(stations[start:end]).fillna(pc.DEFAULT_KVA).to_numpy(); hours[start:end]=(block>caps[:,None]).sum(1)
+        for j, parent in enumerate(mv_parent[start:end]):
+            if isinstance(parent, str) and parent and parent != "NAN":
+                mv_acc[parent] = mv_acc.get(parent, 0) + block[j]
+        print(f"{end:,}/{len(stations):,}",end="\r")
+    d=pd.DataFrame({"k":stations,"n_bldg":a.groupby("k").n.sum().reindex(stations).to_numpy(),"peak_kw":peaks,"annual_kwh":annual,"designed_kva":cap.reindex(stations).fillna(pc.DEFAULT_KVA).to_numpy(),"kva_imputed":cap.reindex(stations).isna().to_numpy(),"overload_hours":hours})
+    d["utilisation"]=d.peak_kw/d.designed_kva; d.to_csv(out/"lv_scenario1.csv",index=False)
+    # Outliers are retained in the results but explicitly flagged for asset or
+    # connectivity review rather than treated as routine reinforcement cases.
+    d["audit_extreme_utilisation"] = d.utilisation > 5.0
+    d["audit_large_catchment"] = d.n_bldg > 1000
+    d["requires_asset_audit"] = d.audit_extreme_utilisation | d.audit_large_catchment
+    d.to_csv(out/"lv_scenario1.csv",index=False)
+    d.loc[d.requires_asset_audit].sort_values("utilisation", ascending=False).to_csv(
+        out/"station_data_quality_audit.csv", index=False)
+    mv_cap = pd.read_csv(HERE / "rerun_out" / "mv_onebasis.csv")[["key", "designed_kva_mv"]].drop_duplicates("key").set_index("key").designed_kva_mv
+    mv = pd.DataFrame({"mv_parent": list(mv_acc), "peak_kw": [v.max() for v in mv_acc.values()]})
+    mv["designed_kva"] = mv.mv_parent.map(mv_cap); mv = mv.dropna(subset=["designed_kva"]).copy()
+    mv["utilisation"] = mv.peak_kw / mv.designed_kva
+    base_mv = pd.read_csv(HERE / "rerun_out" / "mv_rollup_percatchment.csv")[["mv_parent", "peak_kw"]].rename(columns={"peak_kw":"peak_kw_base"})
+    mv = mv.merge(base_mv, on="mv_parent", how="left"); mv["utilisation_base"] = mv.peak_kw_base / mv.designed_kva
+    mv.to_csv(out/"mv_scenario1.csv",index=False)
+    summary = {
+        "stations": len(d), "hp_conversions": int(a.hp_move.sum()),
+        "target_ev": target,
+        "ev_added": int(add_ev.sum()),
+        "hp_ev_coadoption": hp_ev_coadoption,
+        "pv_eligible_installations": int(round((a["Build Type"].map(pv_kwp) > 0).mul(a.n).sum() * .10)),
+        "red": int((d.utilisation > 1).sum()),
+        "near": int(((d.utilisation >= .9) & (d.utilisation <= 1)).sum()),
+        "peak_utilisation": float(d.utilisation.max()),
+        "mv_red": int((mv.utilisation > 1).sum()),
+        "mv_near": int(((mv.utilisation >= .9) & (mv.utilisation <= 1)).sum()),
+        "stations_requiring_asset_audit": int(d.requires_asset_audit.sum()),
+    }
+    (out/"scenario1_summary.json").write_text(json.dumps(summary,indent=2)+"\n"); print("\n",summary)
+    return 0
+if __name__ == "__main__": raise SystemExit(main())

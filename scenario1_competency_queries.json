@@ -1,0 +1,105 @@
+{
+  "triples": 577655,
+  "queries": {
+    "CQ3_scenario_parameters": {
+      "rows": 1,
+      "elapsed_ms": 57.995,
+      "sample": [
+        [
+          "https://example.org/nedt/inst/scenario_1_2024",
+          "0.20",
+          "0.10",
+          "0.10"
+        ]
+      ]
+    },
+    "CQ6_over_capacity_stations": {
+      "rows": 3378,
+      "elapsed_ms": 2160.7,
+      "sample": [
+        [
+          "https://example.org/nedt/inst/s1_lv_station_BA___166Z_0002c9ac54",
+          "4618.482585",
+          "400.000000",
+          "11.546206"
+        ],
+        [
+          "https://example.org/nedt/inst/s1_lv_station_KI___4037_d6fcfe602d",
+          "453.129521",
+          "50.000000",
+          "9.062590"
+        ],
+        [
+          "https://example.org/nedt/inst/s1_lv_station_TU___002X_887ea1d66f",
+          "425.681879",
+          "50.000000",
+          "8.513638"
+        ],
+        [
+          "https://example.org/nedt/inst/s1_lv_station_PR___419_ed43e8219b",
+          "276.872008",
+          "33.000000",
+          "8.390061"
+        ],
+        [
+          "https://example.org/nedt/inst/s1_lv_station_GL___4392_0f2ba40aae",
+          "419.447297",
+          "50.000000",
+          "8.388946"
+        ]
+      ]
+    },
+    "CQ12_provenance_trace": {
+      "rows": 10,
+      "elapsed_ms": 3.945,
+      "sample": [
+        [
+          "https://example.org/nedt/inst/capacity_kpi_s1_01___071Z_8c01b068a6",
+          "https://example.org/nedt/inst/scenario_1_workflow_run"
+        ],
+        [
+          "https://example.org/nedt/inst/capacity_kpi_s1_01___4274_0f34f662d8",
+          "https://example.org/nedt/inst/scenario_1_workflow_run"
+        ],
+        [
+          "https://example.org/nedt/inst/capacity_kpi_s1_02___188X_8220789ad3",
+          "https://example.org/nedt/inst/scenario_1_workflow_run"
+        ],
+        [
+          "https://example.org/nedt/inst/capacity_kpi_s1_02___250X_7e18e67c30",
+          "https://example.org/nedt/inst/scenario_1_workflow_run"
+        ],
+        [
+          "https://example.org/nedt/inst/capacity_kpi_s1_02___810X_53a9a383ce",
+          "https://example.org/nedt/inst/scenario_1_workflow_run"
+        ]
+      ]
+    },
+    "CQ1_county_archetype_inventory": {
+      "rows": 26,
+      "elapsed_ms": 107.834,
+      "sample": [
+        [
+          "https://example.org/nedt/inst/County_Carlow",
+          "298"
+        ],
+        [
+          "https://example.org/nedt/inst/County_Cavan",
+          "333"
+        ],
+        [
+          "https://example.org/nedt/inst/County_Clare",
+          "406"
+        ],
+        [
+          "https://example.org/nedt/inst/County_Cork",
+          "550"
+        ],
+        [
+          "https://example.org/nedt/inst/County_Donegal",
+          "364"
+        ]
+      ]
+    }
+  }
+}

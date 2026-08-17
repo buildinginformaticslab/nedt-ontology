@@ -1,0 +1,50 @@
+{
+  "bundle": "NEDT Scenario 1 RDF reproducibility bundle",
+  "python": "3.11.4",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "files": [
+    {
+      "path": "AEI-2006-PredictiveEnergyModelling/rerun_percatchment.py",
+      "sha256": "c3a517dfea24b57ff1d52120927efe97f74ea171ce16b82bb119e5d53a2dd28b"
+    },
+    {
+      "path": "AEI-2006-PredictiveEnergyModelling/scenario1_percatchment.py",
+      "sha256": "ea59b81021e3cea6a8ec556d985cc591ac2a3ffd49e619c772690f08343ba380"
+    },
+    {
+      "path": "AEI-2006-PredictiveEnergyModelling/rerun_out/lv_scenario1_onebasis.csv",
+      "sha256": "f24b1ead89b7ebb5c19ee89e3b7c5cabfd03c1438c162c5c728143bcdae215a3"
+    },
+    {
+      "path": "AEI-2006-PredictiveEnergyModelling/export_scenario_results_to_rdf.py",
+      "sha256": "42ca87044c715bfafdf073e80f33bdeefcac1c5b3acfdd255ad9ea3469644697"
+    },
+    {
+      "path": "AEI-2006-PredictiveEnergyModelling/run_competency_queries.py",
+      "sha256": "b97f2cd26a5f6c1bfac769d4fe838bcc52e504f4a222da2d45be6607851cf016"
+    },
+    {
+      "path": "ontology/DT_ontology.ttl",
+      "sha256": "ed586f0afb734c054d66942e58e03a56415097dd72547f9f1bca29fea292f65d"
+    },
+    {
+      "path": "ontology/DT_shapes.ttl",
+      "sha256": "32f843252cbabaab905fdfa279da50611c48af58442e960bfd39243a6c232c4a"
+    },
+    {
+      "path": "ontology/scenario1_results.ttl",
+      "sha256": "5fc99d59c07c88ae63cc6c1b711a2d5ecc966383da33caee66caf681596aa5cd"
+    },
+    {
+      "path": "AEI-2006-PredictiveEnergyModelling/results/scenario1/competency_queries.json",
+      "sha256": "dff16997aa8003b6b79a8cb3252fad424b6f036d0919f61e5150cd2f0d45cc6c"
+    }
+  ],
+  "commands": [
+    "python3 AEI-2006-PredictiveEnergyModelling/rerun_percatchment.py --out AEI-2006-PredictiveEnergyModelling/rerun_out",
+    "python3 AEI-2006-PredictiveEnergyModelling/scenario1_percatchment.py",
+    "python3 AEI-2006-PredictiveEnergyModelling/export_scenario_results_to_rdf.py --input AEI-2006-PredictiveEnergyModelling/rerun_out/lv_scenario1_onebasis.csv",
+    "python3 AEI-2006-PredictiveEnergyModelling/run_competency_queries.py",
+    "python3 ontology/validate_shapes.py"
+  ]
+}

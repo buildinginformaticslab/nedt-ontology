@@ -1,0 +1,14 @@
+{
+  "stations": 37287,
+  "hp_conversions": 210843,
+  "target_ev": 243265,
+  "ev_added": 168459,
+  "hp_ev_coadoption": 6844,
+  "pv_eligible_installations": 183108,
+  "red": 3378,
+  "near": 693,
+  "peak_utilisation": 11.546206462811679,
+  "mv_red": 0,
+  "mv_near": 0,
+  "stations_requiring_asset_audit": 46
+}
