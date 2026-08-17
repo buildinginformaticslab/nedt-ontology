@@ -8,7 +8,8 @@ and PV is derived from Nexsys ``PV generation`` sheets.  Outputs are the
 station table consumed by the RDF exporter and a compact JSON summary.
 """
 from __future__ import annotations
-import hashlib, importlib.util, json
+import argparse
+import hashlib, importlib.util, json, os
 from collections import defaultdict
 from pathlib import Path
 import numpy as np
@@ -19,9 +20,6 @@ HERE = Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location("pc", HERE / "rerun_percatchment.py")
 pc = importlib.util.module_from_spec(spec); assert spec.loader; spec.loader.exec_module(pc)
 ROOT = pc.ROOT
-
-PV_XLSX = ROOT / "EV_profiles" / "modified_uncontrolled_results_dynamic.xlsx"
-
 
 def hamilton(values: pd.Series, total: int) -> pd.Series:
     """Deterministic largest-remainder integer allocation."""
@@ -35,7 +33,8 @@ def hamilton(values: pd.Series, total: int) -> pd.Series:
 
 def pv_shape() -> np.ndarray:
     """Exact notebook construction: average peak-normalised Nexsys curves."""
-    xls = pd.ExcelFile(PV_XLSX); shapes = []
+    pv_xlsx = ROOT / "EV_profiles" / "modified_uncontrolled_results_dynamic.xlsx"
+    xls = pd.ExcelFile(pv_xlsx); shapes = []
     for sheet in xls.sheet_names:
         frame = xls.parse(sheet)
         if "PV generation" not in frame: continue
@@ -57,6 +56,12 @@ def pv_kwp(build: str) -> float:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data-root", default=None,
+                        help="licensed DT_Model data workspace (or set NEDT_DATA_ROOT)")
+    args = parser.parse_args()
+    global ROOT
+    ROOT = pc.configure_data_root(args.data_root or os.environ.get("NEDT_DATA_ROOT"))
     out = HERE / "results" / "scenario1"; out.mkdir(parents=True, exist_ok=True)
     a = pd.read_csv(pc.COUNTS); a["k"] = pc.norm_station(a["Station Name"])
     a["BER"] = a.BER.astype(str).str.strip().str[0]; a["Occupancy"] = pd.to_numeric(a.Occupancy, errors="coerce").fillna(3).astype(int)

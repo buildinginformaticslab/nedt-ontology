@@ -1,0 +1,8 @@
+# Tested with Python 3.11. Exact versions support repeatable local reruns.
+numpy==2.3.4
+pandas==2.3.3
+scipy==1.16.3
+openpyxl==3.1.5
+rdflib==7.6.0
+pyshacl==0.31.0
+owlready2==0.51

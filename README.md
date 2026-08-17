@@ -25,7 +25,7 @@ The NEDT ontology provides a shared, machine-interpretable vocabulary for a nati
 
 Explore the ontology interactively (no install needed):
 
-**[Open in WebVOWL](https://service.tib.eu/webvowl/#iri=https://raw.githubusercontent.com/nedt-ireland/nedt-ontology/main/DT_ontology.ttl)**
+**[Open in WebVOWL](https://service.tib.eu/webvowl/#iri=https://raw.githubusercontent.com/buildinginformaticslab/nedt-ontology/main/DT_ontology.ttl)**
 
 Or upload `DT_ontology.ttl` manually at [service.tib.eu/webvowl](https://service.tib.eu/webvowl).
 
@@ -35,7 +35,7 @@ Or upload `DT_ontology.ttl` manually at [service.tib.eu/webvowl](https://service
 
 | File | Description |
 |---|---|
-| `DT_ontology.ttl` | Core OWL ontology — 116 classes, 133 object/datatype properties, 10 modules |
+| `DT_ontology.ttl` | Core OWL ontology — 116 classes and 139 object/datatype properties |
 | `DT_instances_v11.ttl` | Example A-Box instances (v11) |
 | `DT_shapes.ttl` | SHACL validation shapes |
 | `DT_kg.ttl` | Generated knowledge graph (Turtle) |
@@ -47,6 +47,14 @@ Or upload `DT_ontology.ttl` manually at [service.tib.eu/webvowl](https://service
 | `Ontology.ipynb` | Ontology diagram generator (SVG) |
 | `ontology_query.ipynb` | SPARQL query workbench |
 | `DT_ontology_paper.md` | Full ontology specification and design rationale |
+| `scenario1_percatchment.py` | Portable Scenario 1 workflow (`--data-root` for licensed inputs) |
+| `REPRODUCIBILITY.md` | Restricted-data layout, commands and interpretation boundary |
+
+This update does not include manuscript files or newly generated Scenario 1
+results. They are generated locally from licensed inputs and written to
+`results/scenario1/`; generated artefacts should not be mixed with the
+ontology source files tracked here. Any root-level Scenario 1 artefacts in
+the repository are retained unchanged as legacy material.
 
 ---
 
@@ -56,6 +64,10 @@ Or upload `DT_ontology.ttl` manually at [service.tib.eu/webvowl](https://service
 Prefix:  nedt:
 URI:     https://example.org/nedt#
 ```
+
+The namespace is provisional pending registration of a durable PURL. Do not
+mint new production identifiers against a replacement namespace without an
+explicit migration plan.
 
 ---
 
@@ -79,7 +91,7 @@ URI:     https://example.org/nedt#
 ## Quick Start
 
 ```bash
-pip install rdflib pandas pyshacl
+pip install -r requirements.txt
 ```
 
 ```python
@@ -110,6 +122,26 @@ conforms, results_graph, _ = validate(g, shacl_graph="DT_shapes.ttl")
 print("Conforms:", conforms)
 ```
 
+### Scenario 1 reproducibility
+
+The public repository does not contain licensed building, profile or network
+source data. Follow [REPRODUCIBILITY.md](REPRODUCIBILITY.md) and supply a
+licensed DT_Model workspace through `--data-root` or `NEDT_DATA_ROOT`:
+
+```bash
+python3 rerun_percatchment.py --data-root /path/to/DT_Model
+python3 scenario1_percatchment.py --data-root /path/to/DT_Model
+python3 export_scenario_results_to_rdf.py --input results/scenario1/lv_scenario1.csv
+python3 run_competency_queries.py
+python3 validate_shapes.py
+python3 test_entailment.py
+python3 verify_release.py
+```
+
+Scenario capacity results are conditional residential infrastructure-exposure
+indicators. They must not be interpreted as observed transformer-overload
+labels; extreme records are retained locally for reconciliation.
+
 ---
 
 ## External Ontologies Reused
@@ -138,7 +170,8 @@ print("Conforms:", conforms)
 If you use this ontology, please cite:
 
 ```
-Sood, D., Coffee, S., O'Donnell, J. (2026).
-A Modular Ontology for the National Energy Digital Twin (NEDT).
-https://github.com/nedt-ireland/nedt-ontology
+Sood, D., Hoare, C., Coffee, S., O'Donnell, J. (2026).
+A Knowledge-Graph Framework for Transformer-Level Planning under
+Residential Technology-Adoption Scenarios. Manuscript in preparation.
+https://github.com/buildinginformaticslab/nedt-ontology
 ```
