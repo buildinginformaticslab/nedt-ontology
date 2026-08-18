@@ -4,8 +4,10 @@
 This runner retains the paper's allocate-then-maximise station operator while
 using the notebook's technology transitions: C--E oil/gas homes move to BER-A
 heat-pump profiles; EV adoption targets 10% of national private-car stock;
-and PV is derived from Nexsys ``PV generation`` sheets.  Outputs are the
-station table consumed by the RDF exporter and a compact JSON summary.
+and PV is derived from Nexsys ``PV generation`` sheets. Outputs are an LV
+station table consumed by the RDF exporter and a compact JSON summary. It
+does not infer MV/HV capacity utilisation, for which no released parent-asset
+capacity join is available.
 """
 from __future__ import annotations
 import argparse
@@ -39,8 +41,14 @@ def pv_shape() -> np.ndarray:
         frame = xls.parse(sheet)
         if "PV generation" not in frame: continue
         v = pd.to_numeric(frame["PV generation"], errors="coerce").fillna(0).to_numpy(float)
-        if len(v) < 8000 or v.max() <= 0: continue
-        v = v[:pc.HOURS] if len(v) >= pc.HOURS else np.pad(v, (0, pc.HOURS-len(v)))
+        # The supplied Nexsys workbook has 8,758--8,760 rows per sheet;
+        # missing terminal hours are night-time zero-generation values. Do not
+        # silently accept materially incomplete annual profiles.
+        if len(v) not in {8758, 8759, pc.HOURS}:
+            raise ValueError(f"{sheet}: expected 8,758--{pc.HOURS} PV values, found {len(v)}")
+        if v.max() <= 0:
+            raise ValueError(f"{sheet}: PV generation is non-positive")
+        v = np.pad(v, (0, pc.HOURS-len(v)))
         shapes.append(v / v.max())
     if not shapes: raise ValueError("no valid Nexsys PV generation sheets")
     return np.mean(shapes, axis=0) * (1000.0 / 1284.0)
@@ -100,17 +108,10 @@ def main() -> int:
     pv_per_station = a.assign(kwp=a["Build Type"].map(pv_kwp), pv_n=lambda x: x.n*.10).assign(pv_kwp=lambda x:x.kwp*x.pv_n).groupby("k").pv_kwp.sum().reindex(stations).fillna(0).to_numpy()
     shape = pv_shape(); cap = pd.read_csv(pc.CAP); cap["k"] = pc.norm_station(cap["Station Name"]); cap = cap.drop_duplicates("k").set_index("k").designed_kva
     peaks=np.zeros(len(stations)); hours=np.zeros(len(stations),dtype=int); annual=np.zeros(len(stations))
-    network = pd.read_csv(pc.LVNET); network["k"] = pc.norm_station(network["Station Name"])
-    network["mv_parent"] = network.Parent_Station.astype(str).str.split(":").str.split("[").str[0].str.strip().str.upper()
-    mv_parent = pd.Series(stations).map(network.drop_duplicates("k").set_index("k").mv_parent).to_numpy()
-    mv_acc = {}
     for start in range(0,len(stations),2000):
         end=min(start+2000,len(stations)); block=(S0[start:end]@P)+(S1[start:end]@P)-pv_per_station[start:end,None]*shape[None,:]
         block=np.maximum(block,0); peaks[start:end]=block.max(1); annual[start:end]=block.sum(1)
         caps=cap.reindex(stations[start:end]).fillna(pc.DEFAULT_KVA).to_numpy(); hours[start:end]=(block>caps[:,None]).sum(1)
-        for j, parent in enumerate(mv_parent[start:end]):
-            if isinstance(parent, str) and parent and parent != "NAN":
-                mv_acc[parent] = mv_acc.get(parent, 0) + block[j]
         print(f"{end:,}/{len(stations):,}",end="\r")
     d=pd.DataFrame({"k":stations,"n_bldg":a.groupby("k").n.sum().reindex(stations).to_numpy(),"peak_kw":peaks,"annual_kwh":annual,"designed_kva":cap.reindex(stations).fillna(pc.DEFAULT_KVA).to_numpy(),"kva_imputed":cap.reindex(stations).isna().to_numpy(),"overload_hours":hours})
     d["utilisation"]=d.peak_kw/d.designed_kva
@@ -143,13 +144,6 @@ def main() -> int:
     ).sort_values("utilisation", ascending=False)
     audit.to_csv(out/"station_data_quality_audit.csv", index=False)
     audit.to_csv(out/"asset_reconciliation_exceptions.csv", index=False)
-    mv_cap = pd.read_csv(HERE / "rerun_out" / "mv_onebasis.csv")[["key", "designed_kva_mv"]].drop_duplicates("key").set_index("key").designed_kva_mv
-    mv = pd.DataFrame({"mv_parent": list(mv_acc), "peak_kw": [v.max() for v in mv_acc.values()]})
-    mv["designed_kva"] = mv.mv_parent.map(mv_cap); mv = mv.dropna(subset=["designed_kva"]).copy()
-    mv["utilisation"] = mv.peak_kw / mv.designed_kva
-    base_mv = pd.read_csv(HERE / "rerun_out" / "mv_rollup_percatchment.csv")[["mv_parent", "peak_kw"]].rename(columns={"peak_kw":"peak_kw_base"})
-    mv = mv.merge(base_mv, on="mv_parent", how="left"); mv["utilisation_base"] = mv.peak_kw_base / mv.designed_kva
-    mv.to_csv(out/"mv_scenario1.csv",index=False)
     summary = {
         "stations": len(d), "hp_conversions": int(a.hp_move.sum()),
         "target_ev": target,
@@ -161,8 +155,6 @@ def main() -> int:
         "utilisation_p95": float(d.utilisation.quantile(.95)),
         "utilisation_p99": float(d.utilisation.quantile(.99)),
         "maximum_utilisation": float(d.utilisation.max()),
-        "mv_red": int((mv.utilisation > 1).sum()),
-        "mv_near": int(((mv.utilisation >= .9) & (mv.utilisation <= 1)).sum()),
         "stations_requiring_asset_audit": int(d.requires_asset_audit.sum()),
         "stations_with_count_reconciliation_flag": int(d.audit_count_reconciliation.sum()),
     }
