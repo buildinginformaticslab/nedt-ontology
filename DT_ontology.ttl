@@ -1024,8 +1024,9 @@ nedt:changesTechnologyState a owl:ObjectProperty ;
     rdfs:label "changes technology state"@en .
 
 nedt:forLVStation     a owl:ObjectProperty ;
-    rdfs:domain nedt:CapacityKPI ; rdfs:range nedt:LVStation ;
-    rdfs:label "for LV station"@en .
+    rdfs:range nedt:LVStation ;
+    rdfs:label "for LV station"@en ;
+    rdfs:comment "Domain is the union of CapacityKPI and ArchetypeCount; left unasserted so that neither is inferred from the other."@en .
 nedt:scenarioStateOf a owl:ObjectProperty ;
     rdfs:domain nedt:LVStation ; rdfs:range nedt:LVStation ;
     rdfs:label "scenario state of station"@en ;
@@ -1159,3 +1160,119 @@ nedt:OccupancyProfile      nedt:layer "DT-model-extension"@en .
 nedt:ValidationObservation nedt:layer "DT-model-extension"@en .
 nedt:CountyDemandAggregate nedt:layer "DT-model-extension"@en .
 nedt:NationalDemandAggregate nedt:layer "DT-model-extension"@en .
+
+
+#############################################################
+#  MODULE 13 — Terms required by the competency-question set
+#
+#  Added 2026-08-18. CQ7, CQ8, CQ9, CQ11 and CQ12 in the
+#  paper's SPARQL appendix referenced terms that were not
+#  declared in this T-Box, so those queries could not be
+#  executed. These declarations close that gap.
+#############################################################
+
+# ---- CQ7: rooftop PV flexibility state -----------------------------------
+
+nedt:FlexibilityState a owl:Class ;
+    rdfs:label "Flexibility State"@en ;
+    rdfs:comment "Self-consumption and export behaviour of an archetype under a scenario, given its on-site generation." .
+
+nedt:hasSelfConsumptionRatio a owl:DatatypeProperty ;
+    rdfs:domain nedt:FlexibilityState ; rdfs:range xsd:decimal ;
+    rdfs:label "self-consumption ratio"@en ;
+    rdfs:comment "Fraction of on-site generation consumed on site, in [0,1]." .
+nedt:hasGridExport a owl:DatatypeProperty ;
+    rdfs:domain nedt:FlexibilityState ; rdfs:range xsd:decimal ;
+    rdfs:label "grid export (kWh/yr)"@en .
+nedt:hasReverseFlowHours a owl:DatatypeProperty ;
+    rdfs:domain nedt:FlexibilityState ; rdfs:range xsd:integer ;
+    rdfs:label "reverse-flow hours"@en ;
+    rdfs:comment "Hours per year in which on-site generation exceeds on-site demand." .
+
+# ---- CQ8 / CQ9: county and national demand aggregates --------------------
+
+nedt:hasPeakDemandMW a owl:DatatypeProperty ;
+    rdfs:range xsd:decimal ; rdfs:label "peak demand (MW)"@en ;
+    rdfs:comment "Domain is the union of CountyDemandAggregate and NationalDemandAggregate." .
+nedt:hasAnnualEnergyUse a owl:DatatypeProperty ;
+    rdfs:range xsd:decimal ; rdfs:label "annual energy use (GWh)"@en .
+nedt:hasAnnualCO2 a owl:DatatypeProperty ;
+    rdfs:range xsd:decimal ; rdfs:label "annual CO2 (kt)"@en .
+nedt:hasContributionToNationalPeak a owl:DatatypeProperty ;
+    rdfs:domain nedt:CountyDemandAggregate ; rdfs:range xsd:decimal ;
+    rdfs:label "contribution to national peak (MW)"@en ;
+    rdfs:comment "The county's demand at the hour of the national coincident peak, not its own peak." .
+nedt:hasEmissionFactor a owl:DatatypeProperty ;
+    rdfs:range xsd:decimal ; rdfs:label "emission factor (kgCO2/kWh)"@en ;
+    rdfs:comment "Recorded on the aggregate so that reported CO2 is never separated from the factor used to derive it." .
+
+# ---- CQ11: scenario parameter sensitivity --------------------------------
+
+nedt:SensitivityResult a owl:Class ;
+    rdfs:label "Sensitivity Result"@en ;
+    rdfs:comment "Marginal effect of perturbing one scenario parameter, holding the others fixed." .
+
+nedt:ScenarioVariable a owl:Class ;
+    rdfs:label "Scenario Variable"@en ;
+    rdfs:comment "A scenario-level control such as a national adoption fraction. Distinct from nedt:ScenarioParameter, which carries a per-archetype, per-year uptake value." ;
+    nedt:layer "DT-model-extension"@en .
+
+nedt:forParameter a owl:ObjectProperty ;
+    rdfs:domain nedt:SensitivityResult ; rdfs:range nedt:ScenarioVariable ;
+    rdfs:label "for parameter"@en .
+nedt:hasMarginalEffectOnPeak a owl:DatatypeProperty ;
+    rdfs:domain nedt:SensitivityResult ; rdfs:range xsd:decimal ;
+    rdfs:label "marginal effect on peak (MW per percentage point)"@en .
+nedt:hasMarginalEffectOnCO2 a owl:DatatypeProperty ;
+    rdfs:domain nedt:SensitivityResult ; rdfs:range xsd:decimal ;
+    rdfs:label "marginal effect on CO2 (kt per percentage point)"@en .
+nedt:hasPerturbation a owl:DatatypeProperty ;
+    rdfs:domain nedt:SensitivityResult ; rdfs:range xsd:decimal ;
+    rdfs:label "perturbation applied (percentage points)"@en .
+
+# ---- CQ12: scenario assumptions attached to a KPI ------------------------
+
+nedt:hasScenarioAssumption a owl:ObjectProperty ;
+    rdfs:range nedt:ScenarioAssumption ;
+    rdfs:label "has scenario assumption"@en ;
+    rdfs:comment "Links a derived indicator to the named assumptions it depends on. Domain is the union of KPI and CapacityKPI." .
+
+# ---- Layer annotations ---------------------------------------------------
+
+nedt:FlexibilityState  nedt:layer "DT-model-extension"@en .
+nedt:SensitivityResult nedt:layer "DT-model-extension"@en .
+
+
+#############################################################
+#  MODULE 14 — Corrections surfaced by executing the full
+#  competency-question set (2026-08-18).
+#############################################################
+
+# nedt:dwellingCount is used 6,267 times in the published A-Box but was never
+# declared. Declaring it also removes the need to overload nedt:hasCount,
+# which is an ObjectProperty (Archetype -> ArchetypeCount) and cannot also
+# carry a literal without violating the OWL 2 DL requirement that object and
+# datatype property names be disjoint.
+nedt:dwellingCount    a owl:DatatypeProperty ;
+    rdfs:domain nedt:ArchetypeCount ; rdfs:range xsd:integer ;
+    rdfs:label "dwelling count"@en ;
+    rdfs:comment "Number of dwellings in this archetype cohort within its scope (county or LV station)." .
+
+# nedt:instantiatesArchetype has domain Dwelling, so applying it to an
+# ArchetypeCount would entail that cohorts are dwellings. Cohort-to-archetype
+# linkage needs its own property.
+nedt:countsArchetype  a owl:ObjectProperty ;
+    rdfs:domain nedt:ArchetypeCount ; rdfs:range nedt:Archetype ;
+    rdfs:label "counts archetype"@en ;
+    rdfs:comment "Links a cohort to the archetype it counts. Distinct from instantiatesArchetype, which relates an individual dwelling to its archetype." .
+
+nedt:ScenarioAssumption a owl:Class ;
+    rdfs:label "Scenario Assumption"@en ;
+    rdfs:comment "A named, citable assumption on which a scenario and its derived indicators depend." ;
+    nedt:layer "DT-model-extension"@en .
+nedt:hasAssumptionText a owl:DatatypeProperty ;
+    rdfs:domain nedt:ScenarioAssumption ; rdfs:range xsd:string ;
+    rdfs:label "assumption text"@en .
+nedt:hasAssumptionBasis a owl:DatatypeProperty ;
+    rdfs:domain nedt:ScenarioAssumption ; rdfs:range xsd:string ;
+    rdfs:label "assumption basis"@en .

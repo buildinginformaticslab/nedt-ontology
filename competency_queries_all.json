@@ -1,0 +1,388 @@
+{
+  "triples": 1249783,
+  "sources": [
+    "DT_ontology.ttl",
+    "DT_kg.ttl",
+    "scenario1_results.ttl",
+    "cq_test_abox.ttl"
+  ],
+  "repeats": 3,
+  "queries": {
+    "CQ1": {
+      "description": "Dwelling archetype cohorts per county",
+      "rows": 26,
+      "median_ms": 353.84,
+      "answered": true,
+      "skeleton_divergence": "Paper uses nedt:forCounty and nedt:hasCount; the graph uses nedt:inCounty and nedt:dwellingCount. nedt:hasCount is an ObjectProperty (Archetype -> ArchetypeCount) and cannot carry a literal.",
+      "sample": [
+        [
+          "https://example.org/nedt/inst/County_Dublin",
+          "598692",
+          "450"
+        ],
+        [
+          "https://example.org/nedt/inst/County_Cork",
+          "253877",
+          "550"
+        ],
+        [
+          "https://example.org/nedt/inst/County_Galway",
+          "120766",
+          "449"
+        ]
+      ]
+    },
+    "CQ2": {
+      "description": "Building-stock attributes for an archetype",
+      "rows": 50,
+      "median_ms": 17.69,
+      "answered": true,
+      "skeleton_divergence": null,
+      "sample": [
+        [
+          "https://example.org/nedt/inst/arch_Apartment_D_2_Heating_Oil_cb584a77a3",
+          "Apartment",
+          "D",
+          "2",
+          "https://example.org/nedt/inst/heatsys_Heating_Oil_9ff880b65c"
+        ],
+        [
+          "https://example.org/nedt/inst/arch_Apartment_D_3_Heating_Oil_98476085c2",
+          "Apartment",
+          "D",
+          "3",
+          "https://example.org/nedt/inst/heatsys_Heating_Oil_9ff880b65c"
+        ],
+        [
+          "https://example.org/nedt/inst/arch_Apartment_D_4_Heating_Oil_1ca4c2b63d",
+          "Apartment",
+          "D",
+          "4",
+          "https://example.org/nedt/inst/heatsys_Heating_Oil_9ff880b65c"
+        ]
+      ]
+    },
+    "CQ3": {
+      "description": "Scenario parameters",
+      "rows": 1,
+      "median_ms": 2.64,
+      "answered": true,
+      "skeleton_divergence": null,
+      "sample": [
+        [
+          "https://example.org/nedt/inst/scenario_1_2024",
+          "2024",
+          "0.20",
+          "0.10",
+          "0.10"
+        ]
+      ]
+    },
+    "CQ4": {
+      "description": "Technology transitions in the scenario",
+      "rows": 280,
+      "median_ms": 18.71,
+      "answered": true,
+      "skeleton_divergence": null,
+      "sample": [
+        [
+          "https://example.org/nedt/inst/trans_Detached_C_4_Heating_Oil_1ccc6f9562",
+          "https://example.org/nedt/inst/arch_Detached_C_4_Heating_Oil_1ccc6f9562",
+          "https://example.org/nedt/inst/arch_Detached_B_4_Heat_Pump_015c258542",
+          "13576"
+        ],
+        [
+          "https://example.org/nedt/inst/trans_Detached_B_4_Heating_Oil_09c05eb737",
+          "https://example.org/nedt/inst/arch_Detached_B_4_Heating_Oil_09c05eb737",
+          "https://example.org/nedt/inst/arch_Detached_B_4_Heat_Pump_015c258542",
+          "12744"
+        ],
+        [
+          "https://example.org/nedt/inst/trans_Detached_C_2_Heating_Oil_aac234e83c",
+          "https://example.org/nedt/inst/arch_Detached_C_2_Heating_Oil_aac234e83c",
+          "https://example.org/nedt/inst/arch_Detached_B_2_Heat_Pump_9090b6eef6",
+          "11094"
+        ]
+      ]
+    },
+    "CQ5": {
+      "description": "Archetype breakdown for an LV station",
+      "rows": 100,
+      "median_ms": 456.31,
+      "answered": true,
+      "skeleton_divergence": "Paper uses nedt:instantiatesArchetype, whose domain is nedt:Dwelling; applying it to a cohort would entail cohorts are dwellings. Graph uses nedt:countsArchetype.",
+      "sample": [
+        [
+          "https://example.org/nedt/inst/s1_lv_station_BA___166Z_0002c9ac54",
+          "https://example.org/nedt/inst/arch_SemiD_A_4_Heat_Pump_2c6a586fbe",
+          "435"
+        ],
+        [
+          "https://example.org/nedt/inst/s1_lv_station_BA___166Z_0002c9ac54",
+          "https://example.org/nedt/inst/arch_SemiD_A_2_Heat_Pump_d2b4975da5",
+          "365"
+        ],
+        [
+          "https://example.org/nedt/inst/s1_lv_station_BA___166Z_0002c9ac54",
+          "https://example.org/nedt/inst/arch_SemiD_A_3_Heat_Pump_d97456c209",
+          "324"
+        ]
+      ]
+    },
+    "CQ6": {
+      "description": "Over-capacity LV stations under the scenario",
+      "rows": 3378,
+      "median_ms": 2108.84,
+      "answered": true,
+      "skeleton_divergence": "Paper reads nedt:hasUtilisation as a literal; the graph reifies it as a nedt:Utilisation node carrying sosa:hasSimpleResult.",
+      "sample": [
+        [
+          "https://example.org/nedt/inst/s1_lv_station_BA___166Z_0002c9ac54",
+          "4618.482585",
+          "400.000000",
+          "11.546206"
+        ],
+        [
+          "https://example.org/nedt/inst/s1_lv_station_KI___4037_d6fcfe602d",
+          "453.129521",
+          "50.000000",
+          "9.062590"
+        ],
+        [
+          "https://example.org/nedt/inst/s1_lv_station_TU___002X_887ea1d66f",
+          "425.681879",
+          "50.000000",
+          "8.513638"
+        ]
+      ]
+    },
+    "CQ7": {
+      "description": "Rooftop PV self-consumption and export by archetype",
+      "rows": 60,
+      "median_ms": 7.08,
+      "answered": true,
+      "skeleton_divergence": null,
+      "sample": [
+        [
+          "https://example.org/nedt/inst/arch_Apartment_B_4_gasboiler_341c2f681e",
+          "0.161612",
+          "3353.550373",
+          "3557"
+        ],
+        [
+          "https://example.org/nedt/inst/arch_Apartment_B_3_gasboiler_86498517fb",
+          "0.169329",
+          "3322.683442",
+          "3454"
+        ],
+        [
+          "https://example.org/nedt/inst/arch_Apartment_B_2_gasboiler_d628d03752",
+          "0.190538",
+          "3237.849639",
+          "3433"
+        ]
+      ]
+    },
+    "CQ8": {
+      "description": "County peak demand, energy and emissions",
+      "rows": 26,
+      "median_ms": 5.72,
+      "answered": true,
+      "skeleton_divergence": null,
+      "sample": [
+        [
+          "https://example.org/nedt/inst/county_Dublin_c4a265ca6d",
+          "793.734451",
+          "2229.938657",
+          "503.966137"
+        ],
+        [
+          "https://example.org/nedt/inst/county_Cork_c3bbe02341",
+          "298.856715",
+          "983.520478",
+          "222.275628"
+        ],
+        [
+          "https://example.org/nedt/inst/county_Galway_dc4030e27d",
+          "142.525059",
+          "475.226791",
+          "107.401255"
+        ]
+      ]
+    },
+    "CQ9": {
+      "description": "National demand and contributing counties",
+      "rows": 26,
+      "median_ms": 5.14,
+      "answered": true,
+      "skeleton_divergence": null,
+      "sample": [
+        [
+          "2570.593317",
+          "https://example.org/nedt/inst/county_Dublin_c4a265ca6d",
+          "793.734451"
+        ],
+        [
+          "2570.593317",
+          "https://example.org/nedt/inst/county_Cork_c3bbe02341",
+          "298.856715"
+        ],
+        [
+          "2570.593317",
+          "https://example.org/nedt/inst/county_Galway_dc4030e27d",
+          "142.525059"
+        ]
+      ]
+    },
+    "CQ10": {
+      "description": "At-risk stations requiring reinforcement",
+      "rows": 4071,
+      "median_ms": 2718.71,
+      "answered": true,
+      "skeleton_divergence": null,
+      "sample": [
+        [
+          "https://example.org/nedt/inst/s1_lv_station_BA___166Z_0002c9ac54",
+          "11.546206",
+          "6444"
+        ],
+        [
+          "https://example.org/nedt/inst/s1_lv_station_KI___4037_d6fcfe602d",
+          "9.062590",
+          "6260"
+        ],
+        [
+          "https://example.org/nedt/inst/s1_lv_station_TU___002X_887ea1d66f",
+          "8.513638",
+          "5619"
+        ]
+      ]
+    },
+    "CQ11": {
+      "description": "Sensitivity of outcomes to a scenario parameter",
+      "rows": 2,
+      "median_ms": 4.68,
+      "answered": true,
+      "skeleton_divergence": null,
+      "sample": [
+        [
+          "hp_adoption_fraction",
+          "11.892853",
+          "2.697741",
+          "5.000000"
+        ],
+        [
+          "ev_adoption_fraction",
+          "1.310078",
+          "29.333302",
+          "5.000000"
+        ]
+      ]
+    },
+    "CQ12": {
+      "description": "Provenance and assumptions behind a KPI",
+      "rows": 100,
+      "median_ms": 9.06,
+      "answered": true,
+      "skeleton_divergence": "Paper attaches assumptions directly to the KPI; the graph attaches them to the scenario the KPI was evaluated under, which avoids repeating them 37,287 times.",
+      "sample": [
+        [
+          "https://example.org/nedt/inst/capacity_kpi_s1_01___071Z_8c01b068a6",
+          "https://example.org/nedt/inst/scenario_1_workflow_run",
+          "None",
+          "https://example.org/nedt/inst/assum_hp_share"
+        ],
+        [
+          "https://example.org/nedt/inst/capacity_kpi_s1_01___071Z_8c01b068a6",
+          "https://example.org/nedt/inst/scenario_1_workflow_run",
+          "None",
+          "https://example.org/nedt/inst/assum_ev_share"
+        ],
+        [
+          "https://example.org/nedt/inst/capacity_kpi_s1_01___071Z_8c01b068a6",
+          "https://example.org/nedt/inst/scenario_1_workflow_run",
+          "None",
+          "https://example.org/nedt/inst/assum_pv_share"
+        ]
+      ]
+    },
+    "CQ13": {
+      "description": "Dwellings assigned to an LV station",
+      "rows": 200,
+      "median_ms": 5360.4,
+      "answered": true,
+      "skeleton_divergence": null,
+      "sample": [
+        [
+          "https://example.org/nedt/inst/s1_lv_station_MU___4153_ab07fc203c",
+          "https://example.org/nedt/inst/dw_38367812_d0a6ef0618",
+          "https://example.org/nedt/inst/arch_Apartment_D_2_Heating_Oil_cb584a77a3",
+          "519.087445"
+        ],
+        [
+          "https://example.org/nedt/inst/s1_lv_station_MU___4153_ab07fc203c",
+          "https://example.org/nedt/inst/dw_80452700_43dba429bd",
+          "https://example.org/nedt/inst/arch_Apartment_D_2_Heating_Oil_cb584a77a3",
+          "430.078246"
+        ],
+        [
+          "https://example.org/nedt/inst/s1_lv_station_MU___4153_ab07fc203c",
+          "https://example.org/nedt/inst/dw_80452668_327c65d012",
+          "https://example.org/nedt/inst/arch_Apartment_D_2_Heating_Oil_cb584a77a3",
+          "402.444744"
+        ]
+      ]
+    },
+    "CQ14": {
+      "description": "MV roll-up from downstream LV stations",
+      "rows": 475,
+      "median_ms": 1310.43,
+      "answered": true,
+      "skeleton_divergence": "Sum of child peaks, not the coincident roll-up. The coincident value needs the summed hourly series, which the graph does not carry.",
+      "sample": [
+        [
+          "https://example.org/nedt/inst/mv_GLASMORE_b9998cc618",
+          "25416.920300",
+          "297"
+        ],
+        [
+          "https://example.org/nedt/inst/mv_SALTHILL_5844b1e5a0",
+          "21720.466928",
+          "271"
+        ],
+        [
+          "https://example.org/nedt/inst/mv_COOLMINE_d7ee95bcb3",
+          "19359.840968",
+          "134"
+        ]
+      ]
+    },
+    "CQ15": {
+      "description": "Validation observation linked to a modelled profile",
+      "rows": 26,
+      "median_ms": 5.22,
+      "answered": true,
+      "skeleton_divergence": null,
+      "sample": [
+        [
+          "https://example.org/nedt/inst/demandprofile_Dublin_c4a265ca6d",
+          "https://example.org/nedt/inst/valobs_Dublin_c4a265ca6d",
+          "2220.000000",
+          "2024-12-31T23:00:00+00:00"
+        ],
+        [
+          "https://example.org/nedt/inst/demandprofile_Cork_c3bbe02341",
+          "https://example.org/nedt/inst/valobs_Cork_c3bbe02341",
+          "1067.000000",
+          "2024-12-31T23:00:00+00:00"
+        ],
+        [
+          "https://example.org/nedt/inst/demandprofile_Galway_dc4030e27d",
+          "https://example.org/nedt/inst/valobs_Galway_dc4030e27d",
+          "509.000000",
+          "2024-12-31T23:00:00+00:00"
+        ]
+      ]
+    }
+  }
+}

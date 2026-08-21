@@ -20,8 +20,8 @@ nedt:ScenarioParameterShape  a sh:NodeShape ;
                   sh:class nedt:Archetype ;
                   sh:message "ScenarioParameter must have exactly one nedt:forArchetype." ] ;
     sh:property [ sh:path nedt:forYear ; sh:minCount 1 ; sh:maxCount 1 ;
-                  sh:datatype xsd:gYear ;
-                  sh:message "ScenarioParameter must have exactly one nedt:forYear (xsd:gYear)." ] ;
+                  sh:datatype xsd:integer ;
+                  sh:message "ScenarioParameter must have exactly one nedt:forYear (xsd:integer)." ] ;
     sh:property [ sh:path nedt:uptakeValue ; sh:minCount 1 ; sh:maxCount 1 ;
                   sh:datatype xsd:decimal ;
                   sh:message "ScenarioParameter must have exactly one nedt:uptakeValue (xsd:decimal)." ] .
@@ -62,7 +62,7 @@ nedt:CoincidentPeakShape  a sh:NodeShape ;
                   sh:class nedt:Scenario ;
                   sh:message "CoincidentPeak must cite exactly one nedt:derivedUnder scenario." ] ;
     sh:property [ sh:path nedt:evaluatesYear ; sh:minCount 1 ; sh:maxCount 1 ;
-                  sh:datatype xsd:gYear ;
+                  sh:datatype xsd:integer ;
                   sh:message "CoincidentPeak must cite exactly one nedt:evaluatesYear." ] ;
     sh:or (
         [ sh:property [ sh:path nedt:evaluatesCounty ; sh:minCount 1 ;
@@ -77,13 +77,13 @@ nedt:CoincidentPeakShape  a sh:NodeShape ;
 nedt:ReinforcementNeedShape  a sh:NodeShape ;
     sh:targetClass nedt:ReinforcementNeed ;
     sh:property [ sh:path nedt:firstBreachYear ; sh:minCount 1 ; sh:maxCount 1 ;
-                  sh:datatype xsd:gYear ;
+                  sh:datatype xsd:integer ;
                   sh:message "ReinforcementNeed must have exactly one nedt:firstBreachYear." ] ;
     sh:property [ sh:path nedt:breachHours ; sh:minCount 1 ; sh:maxCount 1 ;
                   sh:datatype xsd:integer ; sh:minInclusive 0 ;
                   sh:message "ReinforcementNeed.breachHours must be a non-negative integer." ] ;
     sh:property [ sh:path nedt:evaluatesYear ; sh:minCount 1 ; sh:maxCount 1 ;
-                  sh:datatype xsd:gYear ] ;
+                  sh:datatype xsd:integer ] ;
     sh:property [ sh:path nedt:derivedUnder ; sh:minCount 1 ; sh:maxCount 1 ;
                   sh:class nedt:Scenario ] .
 
@@ -146,7 +146,7 @@ nedt:DHViabilityKPIShape  a sh:NodeShape ;
     sh:property [ sh:path nedt:derivedUnder ; sh:minCount 1 ; sh:maxCount 1 ;
                   sh:class nedt:Scenario ] ;
     sh:property [ sh:path nedt:evaluatesYear ; sh:minCount 1 ; sh:maxCount 1 ;
-                  sh:datatype xsd:gYear ] .
+                  sh:datatype xsd:integer ] .
 
 # ---- FlexibleLoad -----------------------------------------
 nedt:FlexibleLoadShape  a sh:NodeShape ;
@@ -168,7 +168,7 @@ nedt:FlexibilityKPIShape  a sh:NodeShape ;
     sh:property [ sh:path nedt:derivedUnder ; sh:minCount 1 ; sh:maxCount 1 ;
                   sh:class nedt:Scenario ] ;
     sh:property [ sh:path nedt:evaluatesYear ; sh:minCount 1 ; sh:maxCount 1 ;
-                  sh:datatype xsd:gYear ] .
+                  sh:datatype xsd:integer ] .
 
 
 #############################################################
