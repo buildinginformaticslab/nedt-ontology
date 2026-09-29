@@ -3,10 +3,9 @@
 
 Supersedes run_competency_queries.py, which covered four.
 
-Each query is written against the shape the A-Box actually has. Where that
-differs from the SPARQL skeleton printed in the paper's appendix, the
-divergence is recorded in the `skeleton_divergence` field so the paper can be
-corrected rather than the difference being hidden.
+Each query is written against the released graph. The paper's appendix now
+uses the same corrected graph patterns. The retained `skeleton_divergence`
+field reports any future mismatch with that appendix.
 
 Usage:
     python3 run_all_competency_queries.py [--repeats 3] [--output results.json]
@@ -37,9 +36,7 @@ CQ: list[tuple[str, str, str, str | None]] = [
         SELECT ?county (SUM(?n) AS ?dwellings) (COUNT(?c) AS ?cohorts)
         WHERE { ?c a nedt:ArchetypeCount ; nedt:inCounty ?county ; nedt:dwellingCount ?n . }
         GROUP BY ?county ORDER BY DESC(?dwellings)""",
-     "Paper uses nedt:forCounty and nedt:hasCount; the graph uses nedt:inCounty and "
-     "nedt:dwellingCount. nedt:hasCount is an ObjectProperty (Archetype -> ArchetypeCount) "
-     "and cannot carry a literal."),
+     None),
 
     ("CQ2", "Building-stock attributes for an archetype", """
         SELECT ?archetype ?buildType ?berClass ?occupancy ?heatingSystem
@@ -68,8 +65,7 @@ CQ: list[tuple[str, str, str, str | None]] = [
         WHERE { ?c a nedt:ArchetypeCount ; nedt:forLVStation ?station ;
                   nedt:countsArchetype ?archetype ; nedt:dwellingCount ?n . }
         ORDER BY DESC(?n) LIMIT 100""",
-     "Paper uses nedt:instantiatesArchetype, whose domain is nedt:Dwelling; applying it to a "
-     "cohort would entail cohorts are dwellings. Graph uses nedt:countsArchetype."),
+     None),
 
     ("CQ6", "Over-capacity LV stations under the scenario", """
         SELECT ?station ?peak ?capacity ?u
@@ -78,8 +74,7 @@ CQ: list[tuple[str, str, str, str | None]] = [
                   nedt:hasUtilisation ?un . ?un sosa:hasSimpleResult ?u .
                 FILTER(?u > 1.0) }
         ORDER BY DESC(?u)""",
-     "Paper reads nedt:hasUtilisation as a literal; the graph reifies it as a "
-     "nedt:Utilisation node carrying sosa:hasSimpleResult."),
+     None),
 
     ("CQ7", "Rooftop PV self-consumption and export by archetype", """
         SELECT ?archetype ?scr ?export ?reverseHours
@@ -128,8 +123,7 @@ CQ: list[tuple[str, str, str, str | None]] = [
                 OPTIONAL { ?kpi nedt:evaluatedUnderScenario ?scn .
                            ?scn nedt:hasScenarioAssumption ?assumption . } }
         LIMIT 100""",
-     "Paper attaches assumptions directly to the KPI; the graph attaches them to the "
-     "scenario the KPI was evaluated under, which avoids repeating them 37,287 times."),
+     None),
 
     ("CQ13", "Dwellings assigned to an LV station", """
         SELECT ?station ?dwelling ?archetype ?distance
@@ -138,14 +132,13 @@ CQ: list[tuple[str, str, str, str | None]] = [
                 OPTIONAL { ?dwelling nedt:hasAssignmentDistanceM ?distance . } }
         ORDER BY DESC(?distance) LIMIT 200""", None),
 
-    ("CQ14", "MV roll-up from downstream LV stations", """
-        SELECT ?parent (SUM(?peak) AS ?rolledUpPeak) (COUNT(?lv) AS ?children)
+    ("CQ14", "Sum of downstream LV peaks by MV parent", """
+        SELECT ?parent (SUM(?peak) AS ?sumOfChildPeaks) (COUNT(?lv) AS ?children)
         WHERE { ?kpi a nedt:CapacityKPI ; nedt:forLVStation ?lv ;
                   nedt:hasPeakDemandKW ?peak .
                 ?lv nedt:hasParentMVFeeder ?parent . }
-        GROUP BY ?parent ORDER BY DESC(?rolledUpPeak)""",
-     "Sum of child peaks, not the coincident roll-up. The coincident value needs the "
-     "summed hourly series, which the graph does not carry."),
+        GROUP BY ?parent ORDER BY DESC(?sumOfChildPeaks)""",
+     None),
 
     ("CQ15", "Validation observation linked to a modelled profile", """
         SELECT ?profile ?observation ?measured ?timestamp

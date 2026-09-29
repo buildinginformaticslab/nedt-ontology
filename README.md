@@ -35,7 +35,7 @@ Or upload `DT_ontology.ttl` manually at [service.tib.eu/webvowl](https://service
 
 | File | Description |
 |---|---|
-| `DT_ontology.ttl` | Core OWL ontology — 116 classes and 139 object/datatype properties |
+| `DT_ontology.ttl` | NEDT OWL ontology — 119 classes, 97 object properties and 59 datatype properties |
 | `DT_instances_v11.ttl` | Example A-Box instances (v11) |
 | `DT_shapes.ttl` | SHACL validation shapes |
 | `DT_kg.ttl` | Generated knowledge graph (Turtle) |
