@@ -8,7 +8,7 @@
 
 ## Abstract
 
-We present the National Energy Digital Twin (NEDT) ontology, a modular OWL specification describing the entities, observations, calculations and scenarios that underpin a residential energy digital twin for Ireland. The ontology binds together (i) a national archetype-count dataset (2.1 M dwellings, 702 archetype signatures), (ii) hourly Nexsys profiles providing electricity, heat, EV-charging and rooftop-PV generation at archetype granularity, (iii) ESB Networks low-voltage substation geometries and capacities, and (iv) SEAI domestic-PV grant records. It reuses SSN/SOSA for observations, OWL-Time for temporal intervals, OM-2 for units of measure, and GeoSPARQL for spatial geometries. Its structural backbone follows the Li et al. (2019) EM-KPI pattern, with KPI classes linked to KPI-evaluated objects through calculation procedures. Ten modules are defined: KPI, Archetype, Scenario, Energy Load, LV Network, Attribution, Heat Density, Visualisation, Geography, and Rooftop PV.
+We present the National Energy Digital Twin (NEDT) ontology, a modular OWL specification describing the entities, observations, calculations and scenarios that underpin a residential energy digital twin for Ireland. The ontology binds together (i) a national archetype-count dataset (2.1 M dwellings, 702 archetype signatures), (ii) hourly EV profiles providing electricity, heat, EV-charging and rooftop-PV generation at archetype granularity, (iii) ESB Networks low-voltage substation geometries and capacities, and (iv) SEAI domestic-PV grant records. It reuses SSN/SOSA for observations, OWL-Time for temporal intervals, OM-2 for units of measure, and GeoSPARQL for spatial geometries. Its structural backbone follows the Li et al. (2019) EM-KPI pattern, with KPI classes linked to KPI-evaluated objects through calculation procedures. Ten modules are defined: KPI, Archetype, Scenario, Energy Load, LV Network, Attribution, Heat Density, Visualisation, Geography, and Rooftop PV.
 
 ## 1. Motivation
 
@@ -27,13 +27,13 @@ A digital twin of the Irish residential electricity system must reconcile hetero
 Built from the Li et al. EM-KPI skeleton: `Stakeholder → PerformanceGoal → KPI → KPICalculation → KPIValue`. Strategic, Tactical and Operational KPIs form a three-tier hierarchy. KPIs evaluate a `KPIEvaluatedObject` — either a `County`, an `LVStation`, an `Archetype`, or a `Scenario`. Evaluation intervals reuse `time:Interval`; values carry `om:Unit_of_measure`.
 
 ### 3.2 Archetype module
-An `Archetype` is identified by five descriptors: `BuildType × BER × Occupancy × HeatingSystem × WeatherClassification`. `ArchetypeCount` instances are county-scoped observations (`ArchCount_original`, `ArchCount_EV`, `ArchCount_NoEV`). A `BERFallbackRule` encodes substitutions when no direct profile exists (e.g., F/G folded onto E). A `ProfileKey` maps each archetype to the appropriate Nexsys profile. 702 archetype signatures are present across the 26-county archetype-count dataset; of these, 42 have a direct Nexsys match, 36.3% require occupancy fallback, and 19.6% (chiefly F/G BER) use a further BER fallback.
+An `Archetype` is identified by five descriptors: `BuildType × BER × Occupancy × HeatingSystem × WeatherClassification`. `ArchetypeCount` instances are county-scoped observations (`ArchCount_original`, `ArchCount_EV`, `ArchCount_NoEV`). A `BERFallbackRule` encodes substitutions when no direct profile exists (e.g., F/G folded onto E). A `ProfileKey` maps each archetype to the appropriate EV profile. 702 archetype signatures are present across the 26-county archetype-count dataset; of these, 42 have a direct EV-profile match, 36.3% require occupancy fallback, and 19.6% (chiefly F/G BER) use a further BER fallback.
 
 ### 3.3 Scenario module
 `HPScenario`, `EVScenario` and the new `PVAdoptionScenario` are subclasses of `Scenario`. `EVMode` distinguishes uncontrolled / Tier-3 / Tier-4 / V1H / V2H charging policies. A `TransitionLedger` records how dwellings migrate between archetypes under a scenario, with `LargestRemainderAlloc` as the default allocation procedure for integer-preserving rounding across the 26 counties.
 
 ### 3.4 Energy Load module
-`ElectricLoad ⊑ EnergyLoad` and `HeatLoad ⊑ EnergyLoad` carry hourly time series derived from `NexsysProfile` observations. `CO2Emission` is an observation value attached to `EnergyLoad` via `hasCO2`. `LoadCalculation` procedures orchestrate the join between `ArchetypeCount`, `NexsysProfile`, `EVScenario`, `HPScenario` and (new) `PVSystem`.
+`ElectricLoad ⊑ EnergyLoad` and `HeatLoad ⊑ EnergyLoad` carry hourly time series derived from `EVProfile` observations. `CO2Emission` is an observation value attached to `EnergyLoad` via `hasCO2`. `LoadCalculation` procedures orchestrate the join between `ArchetypeCount`, `EVProfile`, `EVScenario`, `HPScenario` and (new) `PVSystem`.
 
 ### 3.5 LV Network module
 An `LVStation` has a `HullPolygon` geometry (assigned from ESB Networks records), a `StationCapacity`, and hourly `StationLoad`. `Utilisation = Load / Capacity` is bucketed into a `UtilisationStatus` (green ≤ 80%, yellow 80–100%, red-maroon > 100%). `BuildingShare` captures the proportion of each archetype assigned to the station.
@@ -51,7 +51,7 @@ An `LVStation` has a `HullPolygon` geometry (assigned from ESB Networks records)
 `County ⊑ geo:Feature` is the top-level spatial anchor. `County contains LVStation`; `County hasArchetype Archetype`.
 
 ### 3.10 Rooftop PV module (new)
-A `PVSystem` is a dwelling-mounted photovoltaic installation characterised by `installedCapacity_kWp` and one `PVGenerationProfile`. Empirical analysis of 69 archetype-resolved Nexsys PV columns (pairwise shape-correlation ≥ 0.88, cosine similarity of per-bin mean shapes ≥ 0.96) justifies collapsing the profile family into a single `PVReferenceShape` — the mean, normalised, 1 kWp curve (~1095 kWh/yr). Per-dwelling generation is therefore computed as `reference_shape × installedCapacity_kWp`. Apartments are excluded; all BER letters A–E are admitted. The `PVCapacityMix` distribution defaults to the 2017 Irish reference: 10 / 47 / 23 / 6 / 11 / 3 % at 1–6 kWp. A `PVAdoptionScenario` either (a) inherits `adoptionFraction` from the cumulative `SEAIGrantRecord` for "as-is" runs or (b) accepts a user-supplied fraction in scenario runs. A `NettingProcedure` subtracts PV generation from electric load per dwelling and clamps the result at zero (no-export assumption), producing a `NetLoad ⊑ ElectricLoad`.
+A `PVSystem` is a dwelling-mounted photovoltaic installation characterised by `installedCapacity_kWp` and one `PVGenerationProfile`. Empirical analysis of 69 archetype-resolved EV-profile PV columns (pairwise shape-correlation ≥ 0.88, cosine similarity of per-bin mean shapes ≥ 0.96) justifies collapsing the profile family into a single `PVReferenceShape` — the mean, normalised, 1 kWp curve (~1095 kWh/yr). Per-dwelling generation is therefore computed as `reference_shape × installedCapacity_kWp`. Apartments are excluded; all BER letters A–E are admitted. The `PVCapacityMix` distribution defaults to the 2017 Irish reference: 10 / 47 / 23 / 6 / 11 / 3 % at 1–6 kWp. A `PVAdoptionScenario` either (a) inherits `adoptionFraction` from the cumulative `SEAIGrantRecord` for "as-is" runs or (b) accepts a user-supplied fraction in scenario runs. A `NettingProcedure` subtracts PV generation from electric load per dwelling and clamps the result at zero (no-export assumption), producing a `NetLoad ⊑ ElectricLoad`.
 
 ### 3.11 Methodology overview (Fig 2)
 
@@ -85,7 +85,7 @@ Table 1 summarises the split across the ten NEDT modules.
 | KPI | `Stakeholder`, `DatumSource` | `PerformanceGoal`, `KPI`, `StrategicKPI`, `TacticalKPI`, `OperationalKPI`, `KPIEvaluatedObject`, `KPICalculation`, `KPIValue` |
 | Archetype | `Archetype` (≡ `bot:Building` / `gd:Building`), `ArchetypeDescriptor` | `ArchetypeCount`, `ProfileKey`, `BERFallbackRule`, `TransitionKey` |
 | Scenario | — | `Scenario`, `HPScenario`, `EVScenario`, `EVMode`, `HPTransition`, `TransitionLedger`, `LargestRemainderAlloc`, `PVAdoptionScenario` |
-| Energy Load | — | `EnergyLoad`, `ElectricLoad`, `HeatLoad`, `NetLoad`, `CO2Emission`, `LoadMetric`, `LoadCalculation`, `HourlyProfile`, `NexsysProfile`, `DeltaSeries` |
+| Energy Load | — | `EnergyLoad`, `ElectricLoad`, `HeatLoad`, `NetLoad`, `CO2Emission`, `LoadMetric`, `LoadCalculation`, `HourlyProfile`, `EVProfile`, `DeltaSeries` |
 | LV Network | `LVStation` (≡ `saragon:Transformer`), `HullPolygon` (↔ `geo:Geometry` / `saragon:hasServiceArea`), `BuildingShare` | `StationCapacity`, `StationLoad`, `Utilisation`, `UtilisationStatus` |
 | Attribution | — | `OverloadedStation`, `OverloadAttribution`, `ContribRank`, `DominantDriver`, `RiskTable`, `StationTransition`, `TopTransitions` |
 | Heat Density | — | `HeatDensityGDF`, `HeatFuelComponent`, `HeatDensity`, `CountySummary` |
@@ -106,13 +106,13 @@ Table 1 summarises the split across the ten NEDT modules.
 
 ## 6. Reproducibility and FAIR notes
 
-The Turtle file (`DT_ontology.ttl`) is suitable for direct consumption by OWL reasoners (HermiT, ELK). The 10 module diagrams (`ontology_diagrams.html`) render as SVG and PNG for inclusion as paper figures. An instance-level graph populated from the 26-county archetype counts and the Nexsys profile catalogue is the next deliverable, suitable for serialisation as JSON-LD or loading into Neo4j for interactive exploration.
+The Turtle file (`DT_ontology.ttl`) is suitable for direct consumption by OWL reasoners (HermiT, ELK). The 10 module diagrams (`ontology_diagrams.html`) render as SVG and PNG for inclusion as paper figures. An instance-level graph populated from the 26-county archetype counts and the EV profile catalogue is the next deliverable, suitable for serialisation as JSON-LD or loading into Neo4j for interactive exploration.
 
 ## 7. Limitations
 
 - Archetype-level granularity stops short of individual dwellings; address-level joining to SEAI grants is left for future work.
 - The PV module assumes a single climate zone for Ireland; future regional disaggregation would require multiple `PVReferenceShape` instances.
-- BER F/G classes are represented structurally but their profiles are derived via `BERFallbackRule` rather than from simulation, a known limitation inherited from the Nexsys input set.
+- BER F/G classes are represented structurally but their profiles are derived via `BERFallbackRule` rather than from simulation, a known limitation inherited from the EV-profile input set.
 
 ## 8. Competency questions
 
@@ -253,7 +253,7 @@ Provenance associations (`prov:used`, `prov:generated`, `prov:wasDerivedFrom`) a
 
 ### 9.2 Classes reused from the v1.0.0 ontology
 
-The majority of the triple patterns in Appendix A resolve against classes that already exist in the published Turtle file: `cdt:Archetype`, `cdt:ArchetypeCount`, `cdt:County`, `cdt:LVStation`, `cdt:StationCapacity`, `cdt:StationLoad`, `cdt:Utilisation`, `cdt:Scenario` (and the HP / EV / PV subclasses), `cdt:TransitionLedger`, `cdt:ElectricLoad`, `cdt:HeatLoad`, `cdt:NetLoad`, `cdt:CO2Emission`, `cdt:HourlyProfile`, `cdt:NexsysProfile`, `cdt:PVSystem`, `cdt:PVGenerationProfile`, `cdt:OverloadedStation`, `cdt:OverloadAttribution`, `cdt:DominantDriver`, `cdt:RiskTable`, `cdt:DatumSource`, `cdt:SEAIGrantRecord`, `cdt:KPI` and its subclasses, `cdt:KPICalculation`, `cdt:KPIValue`, `cdt:DeltaSeries`.
+The majority of the triple patterns in Appendix A resolve against classes that already exist in the published Turtle file: `cdt:Archetype`, `cdt:ArchetypeCount`, `cdt:County`, `cdt:LVStation`, `cdt:StationCapacity`, `cdt:StationLoad`, `cdt:Utilisation`, `cdt:Scenario` (and the HP / EV / PV subclasses), `cdt:TransitionLedger`, `cdt:ElectricLoad`, `cdt:HeatLoad`, `cdt:NetLoad`, `cdt:CO2Emission`, `cdt:HourlyProfile`, `cdt:EVProfile`, `cdt:PVSystem`, `cdt:PVGenerationProfile`, `cdt:OverloadedStation`, `cdt:OverloadAttribution`, `cdt:DominantDriver`, `cdt:RiskTable`, `cdt:DatumSource`, `cdt:SEAIGrantRecord`, `cdt:KPI` and its subclasses, `cdt:KPICalculation`, `cdt:KPIValue`, `cdt:DeltaSeries`.
 
 
 ## Appendix A. SPARQL skeletons for the competency questions

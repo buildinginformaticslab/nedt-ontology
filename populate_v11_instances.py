@@ -214,7 +214,7 @@ for ds, label in [
     ("DS_SEAI_BER_2024",   "SEAI BER Research v2024"),
     ("DS_CSO_SAPS_2022",   "CSO SAPS 2022"),
     ("DS_ESB_LV_2024",     "ESB LV substation geojson 2024"),
-    ("DS_Nexsys_2024",     "Nexsys archetype profile catalogue 2024"),
+    ("DS_EVProfiles_2024",     "EV-profile archetype catalogue 2024"),
 ]:
     iri = INST[ds]
     T(iri, RDF.type, NEDT.DatumSource)
@@ -223,7 +223,7 @@ for ds, label in [
 T(INST.DTRun_Louth_S2_2035, RDF.type, NEDT.DTRun)
 T(INST.DTRun_Louth_S2_2035, RDFS.label,
   Literal("DT run: Louth · S2 · 2035", lang="en"))
-for ds in ["DS_SEAI_BER_2024","DS_CSO_SAPS_2022","DS_ESB_LV_2024","DS_Nexsys_2024"]:
+for ds in ["DS_SEAI_BER_2024","DS_CSO_SAPS_2022","DS_ESB_LV_2024","DS_EVProfiles_2024"]:
     T(INST.DTRun_Louth_S2_2035, PROV.used, INST[ds])
 T(INST.DTRun_Louth_S2_2035, PROV.used, INST.Assumption_CAP_HP)
 T(INST.DTRun_Louth_S2_2035, PROV.generated, INST.Peak_Louth_2035_S2)

@@ -130,12 +130,12 @@ nedt:LoadCalculation      a owl:Class ; rdfs:subClassOf ssn:Procedure ; rdfs:lab
 nedt:LoadMetric           a owl:Class ; rdfs:subClassOf ssn:ObservationValue ; rdfs:label "Load Metric"@en .
 nedt:HourlyProfile        a owl:Class ; rdfs:label "Hourly Profile"@en ;
     rdfs:comment "An 8760-hour time-series observation attached to an archetype or aggregated entity." .
-nedt:NexsysProfile        a owl:Class ; rdfs:subClassOf nedt:HourlyProfile ; rdfs:label "Nexsys Profile"@en .
+nedt:EVProfile        a owl:Class ; rdfs:subClassOf nedt:HourlyProfile ; rdfs:label "EV Profile"@en .
 
 nedt:computesLoad         a owl:ObjectProperty ; rdfs:domain nedt:LoadCalculation ; rdfs:range nedt:EnergyLoad .
 nedt:usesProfile          a owl:ObjectProperty ; rdfs:domain nedt:LoadCalculation ; rdfs:range nedt:HourlyProfile .
-nedt:usesNexsys           a owl:ObjectProperty ; rdfs:domain nedt:EnergyLoad ; rdfs:range nedt:NexsysProfile .
-nedt:usesNoEVProfile      a owl:ObjectProperty ; rdfs:domain nedt:EnergyLoad ; rdfs:range nedt:NexsysProfile .
+nedt:usesEVProfile           a owl:ObjectProperty ; rdfs:domain nedt:EnergyLoad ; rdfs:range nedt:EVProfile .
+nedt:usesNoEVProfile      a owl:ObjectProperty ; rdfs:domain nedt:EnergyLoad ; rdfs:range nedt:EVProfile .
 nedt:hasCO2               a owl:ObjectProperty ; rdfs:domain nedt:EnergyLoad ; rdfs:range nedt:CO2Emission .
 nedt:hasElec              a owl:ObjectProperty ; rdfs:domain nedt:EnergyLoad ; rdfs:range nedt:ElectricLoad .
 nedt:hasHeat              a owl:ObjectProperty ; rdfs:domain nedt:EnergyLoad ; rdfs:range nedt:HeatLoad .
@@ -160,7 +160,7 @@ nedt:BuildingShare        a owl:Class ; rdfs:label "Building Share"@en .
 nedt:hasHull              a owl:ObjectProperty ; rdfs:domain nedt:LVStation ; rdfs:range nedt:HullPolygon .
 nedt:hasCapacity          a owl:ObjectProperty ; rdfs:domain nedt:LVStation ; rdfs:range nedt:StationCapacity .
 nedt:hasLoad              a owl:ObjectProperty ; rdfs:domain nedt:LVStation ; rdfs:range nedt:StationLoad .
-nedt:hasUtilisation       a owl:ObjectProperty ; rdfs:domain nedt:LVStation ; rdfs:range nedt:Utilisation .
+nedt:hasUtilisation       a owl:ObjectProperty ; rdfs:domain nedt:CapacityKPI ; rdfs:range nedt:Utilisation .
 nedt:hasStatus            a owl:ObjectProperty ; rdfs:domain nedt:Utilisation ; rdfs:range nedt:UtilisationStatus .
 nedt:hasBldgShare         a owl:ObjectProperty ; rdfs:domain nedt:LVStation ; rdfs:range nedt:BuildingShare .
 
@@ -234,7 +234,7 @@ nedt:PVSystem             a owl:Class ; rdfs:label "Rooftop PV System"@en ;
 nedt:PVGenerationProfile  a owl:Class ; rdfs:subClassOf nedt:HourlyProfile ; rdfs:label "PV Generation Profile"@en ;
     rdfs:comment "Hourly kW generation; empirically collapses to one weather-driven reference shape across archetypes (cosine similarity ≥ 0.96)." .
 nedt:PVReferenceShape     a owl:Class ; rdfs:subClassOf nedt:PVGenerationProfile ; rdfs:label "PV Reference Shape"@en ;
-    rdfs:comment "Normalised 1 kWp shape derived as the mean of all Nexsys PV columns after peak/0.85 normalisation (~1095 kWh/yr)." .
+    rdfs:comment "Normalised 1 kWp shape derived as the mean of all EV-profile PV columns after peak/0.85 normalisation (~1095 kWh/yr)." .
 nedt:PVCapacityBin        a owl:Class ; rdfs:label "PV Capacity Bin"@en ;
     rdfs:comment "Installed-capacity band (1, 2, 3, 4, 5, 6 kWp) used to discretise the national distribution." .
 nedt:PVCapacityMix        a owl:Class ; rdfs:label "PV Capacity Mix"@en ;
@@ -266,10 +266,10 @@ nedt:grantFundingEUR      a owl:DatatypeProperty ; rdfs:domain nedt:SEAIGrantRec
 #  Connectors for previously orphan classes
 #############################################################
 
-# Archetype ↔ ProfileKey ↔ NexsysProfile
+# Archetype ↔ ProfileKey ↔ EVProfile
 nedt:hasProfileKey        a owl:ObjectProperty ; rdfs:domain nedt:Archetype   ; rdfs:range nedt:ProfileKey ;
     rdfs:label "has profile key"@en .
-nedt:resolvesTo           a owl:ObjectProperty ; rdfs:domain nedt:ProfileKey  ; rdfs:range nedt:NexsysProfile ;
+nedt:resolvesTo           a owl:ObjectProperty ; rdfs:domain nedt:ProfileKey  ; rdfs:range nedt:EVProfile ;
     rdfs:label "resolves to profile"@en .
 
 # Attribution connectors
@@ -389,7 +389,7 @@ nedt:CO2Emission         nedt:layer "DT-model-extension"@en .
 nedt:LoadCalculation     nedt:layer "DT-model-extension"@en .
 nedt:LoadMetric          nedt:layer "DT-model-extension"@en .
 nedt:HourlyProfile       nedt:layer "DT-model-extension"@en .
-nedt:NexsysProfile       nedt:layer "DT-model-extension"@en .
+nedt:EVProfile       nedt:layer "DT-model-extension"@en .
 
 # LV network observations
 nedt:StationCapacity     nedt:layer "DT-model-extension"@en .

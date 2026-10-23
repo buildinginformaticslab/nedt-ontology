@@ -114,7 +114,7 @@ for (key, cty), cnt in arch_county.items():
     g.add((INST[f"County_{slug(cty)}"], NEDT.hasArchetype, INST[aid]))
 
 # -----------------------------------------------------------------------------
-# 3) NexsysProfile instances (69 files)
+# 3) EVProfile instances (69 files)
 # -----------------------------------------------------------------------------
 nex_dir = PROJECT_ROOT / "CountyAnalysis" / "2024_disaggregated" / "total_electricity copy 2"
 for fn in sorted(nex_dir.iterdir()):
@@ -123,9 +123,9 @@ for fn in sorted(nex_dir.iterdir()):
     parts = stem.split("_")
     if len(parts) < 4: continue
     dtype, ber, occ, heat = parts[0], parts[1], parts[2], parts[3]
-    pu = INST[f"NexsysProfile_{stem}"]
-    g.add((pu, RDF.type, NEDT.NexsysProfile))
-    g.add((pu, RDFS.label, Literal(f"Nexsys·{stem}")))
+    pu = INST[f"EVProfile_{stem}"]
+    g.add((pu, RDF.type, NEDT.EVProfile))
+    g.add((pu, RDFS.label, Literal(f"EVProfile·{stem}")))
     g.add((pu, NEDT.sourceFile, Literal(str(fn.relative_to(PROJECT_ROOT)))))
     # link to archetype if direct match exists
     aid = f"Arch_{slug(dtype)}_{slug(ber)}_{occ}_{slug(heat)}"
@@ -179,7 +179,7 @@ print(f"  Counties:             {len(counties)}")
 print(f"  Archetypes:           {len(arch_seen)}")
 print(f"  ArchetypeCounts:      {len(arch_county):,}")
 print(f"  SEAI grant records:   {sum(len(v) for v in pv_rows.values())}")
-print(f"  Nexsys profiles:      69")
+print(f"  EV profiles:      69")
 print(f"  PV capacity bins:     6")
 
 # -----------------------------------------------------------------------------
@@ -192,7 +192,7 @@ net = Network(height="900px", width="100%", bgcolor="#fafbfd", font_color="#222"
 # palette per ontology module (secondary hue), overridden per layer below
 MODULE_SIZE = {
   NEDT.County: 22, NEDT.LVStation: 14, NEDT.Archetype: 11,
-  NEDT.ArchetypeCount: 8, NEDT.NexsysProfile: 10, NEDT.SEAIGrantRecord: 7,
+  NEDT.ArchetypeCount: 8, NEDT.EVProfile: 10, NEDT.SEAIGrantRecord: 7,
   NEDT.PVReferenceShape: 16, NEDT.PVCapacityBin: 13, NEDT.PVCapacityMix: 15,
   NEDT.PVAdoptionScenario: 17, NEDT.KPI: 15,
 }
@@ -235,7 +235,7 @@ for u in instance_uris:
     if name.startswith("County_"):              keep.add(u)
     elif name.startswith("Arch_") and name in top_arch_ids: keep.add(u)
     elif name.startswith("AC_") and any(name.startswith(f"AC_{aid}_") for aid in top_arch_ids): keep.add(u)
-    elif name.startswith("NexsysProfile_") and any(
+    elif name.startswith("EVProfile_") and any(
             d in name and b in name and str(o) in name and h in name
             for (d, b, o, h) in top_archs.keys()
             if f"Arch_{slug(d)}_{slug(b)}_{o}_{slug(h)}" in top_arch_ids):

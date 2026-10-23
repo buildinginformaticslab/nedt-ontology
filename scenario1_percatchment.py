@@ -4,7 +4,7 @@
 This runner retains the paper's allocate-then-maximise station operator while
 using the notebook's technology transitions: C--E oil/gas homes move to BER-A
 heat-pump profiles; EV adoption targets 10% of national private-car stock;
-and PV is derived from Nexsys ``PV generation`` sheets. Outputs are an LV
+and PV is derived from EV-profile ``PV generation`` sheets. Outputs are an LV
 station table consumed by the RDF exporter and a compact JSON summary. It
 does not infer MV/HV capacity utilisation, for which no released parent-asset
 capacity join is available.
@@ -34,14 +34,14 @@ def hamilton(values: pd.Series, total: int) -> pd.Series:
 
 
 def pv_shape() -> np.ndarray:
-    """Exact notebook construction: average peak-normalised Nexsys curves."""
+    """Exact notebook construction: average peak-normalised EV-profile curves."""
     pv_xlsx = ROOT / "EV_profiles" / "modified_uncontrolled_results_dynamic.xlsx"
     xls = pd.ExcelFile(pv_xlsx); shapes = []
     for sheet in xls.sheet_names:
         frame = xls.parse(sheet)
         if "PV generation" not in frame: continue
         v = pd.to_numeric(frame["PV generation"], errors="coerce").fillna(0).to_numpy(float)
-        # The supplied Nexsys workbook has 8,758--8,760 rows per sheet;
+        # The supplied EV-profile workbook has 8,758--8,760 rows per sheet;
         # missing terminal hours are night-time zero-generation values. Do not
         # silently accept materially incomplete annual profiles.
         if len(v) not in {8758, 8759, pc.HOURS}:
@@ -50,7 +50,7 @@ def pv_shape() -> np.ndarray:
             raise ValueError(f"{sheet}: PV generation is non-positive")
         v = np.pad(v, (0, pc.HOURS-len(v)))
         shapes.append(v / v.max())
-    if not shapes: raise ValueError("no valid Nexsys PV generation sheets")
+    if not shapes: raise ValueError("no valid EV-profile PV generation sheets")
     return np.mean(shapes, axis=0) * (1000.0 / 1284.0)
 
 

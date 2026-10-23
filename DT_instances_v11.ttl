@@ -107,8 +107,8 @@ inst:DS_CSO_SAPS_2022 a nedt:DatumSource ;
 inst:DS_ESB_LV_2024 a nedt:DatumSource ;
     rdfs:label "ESB LV substation geojson 2024"@en .
 
-inst:DS_Nexsys_2024 a nedt:DatumSource ;
-    rdfs:label "Nexsys archetype profile catalogue 2024"@en .
+inst:DS_EVProfiles_2024 a nedt:DatumSource ;
+    rdfs:label "EV-profile archetype catalogue 2024"@en .
 
 inst:DS_SEAI_BER_2024 a nedt:DatumSource ;
     rdfs:label "SEAI BER Research v2024"@en .
@@ -121,7 +121,7 @@ inst:DTRun_Louth_S2_2035 a nedt:DTRun ;
     prov:used inst:Assumption_CAP_HP,
         inst:DS_CSO_SAPS_2022,
         inst:DS_ESB_LV_2024,
-        inst:DS_Nexsys_2024,
+        inst:DS_EVProfiles_2024,
         inst:DS_SEAI_BER_2024 .
 
 inst:DType_Detached a nedt:DwellingType ;

@@ -9,7 +9,7 @@ CQ11 scenario-parameter sensitivity: marginal effect of the heat-pump and EV
 Both are appended to cq_test_abox.ttl.
 
 PV CAVEAT, stated in the output graph as well as here: the NEDT workflow's own
-normalised PV shape lives in a 128 MB Nexsys workbook that is not redistributable.
+normalised PV shape lives in a 128 MB EV-profile workbook that is not redistributable.
 This script substitutes a clear-sky geometric model for Dublin (53.35 N) scaled
 to 1,000 kWh/kWp/yr, the PVGIS reference the workflow documents. The shape is an
 approximation and the graph records it as such via nedt:hasAssumptionBasis.

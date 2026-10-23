@@ -1094,7 +1094,7 @@ Appendix~\ref{app:scenario-parameters} provides the Scenario~1
 parameterisation.
 
 \paragraph{Rooftop-PV construction and netting.}
-The PV term is generated from the NEDT Nexsys uncontrolled-charging
+The PV term is generated from the NEDT EV-profile uncontrolled-charging
 workbook, rather than inferred from EV demand. For each valid archetype
 sheet, the hourly \texttt{PV generation} series is divided by its own peak;
 the resulting curves are averaged, zero-padded to 8760 hours where necessary,
@@ -2067,7 +2067,7 @@ baseline per-station profiles, the utilisation-ratio comparison against the
 published ESB allocation ratio, and the MV coincident roll-up.
 \texttt{scenario1\_percatchment.py} regenerates the Scenario~1 station table
 from the raw station archetype counts, EnergyPlus profile library, national
-car-stock target, and Nexsys PV workbook.
+car-stock target, and EV-profile PV workbook.
 \texttt{export\_scenario\_results\_to\_rdf.py} materialises the
 Scenario~1 station output as \texttt{scenario1\_results.ttl};
 \texttt{run\_competency\_queries.py} executes the four reported queries and
@@ -2312,7 +2312,7 @@ Rooftop PV & Gross generation exported to grid      & 30\% & of exporters' outpu
 Rooftop PV & System size: terraced                  & 2.5~kWp & roof-area norm \\
 Rooftop PV & System size: semi-detached             & 3.5~kWp & roof-area norm \\
 Rooftop PV & System size: detached / bungalow       & 4.0~kWp & roof-area norm \\
-Rooftop PV & Annual-yield normalisation             & 1,000~kWh/kWp & Nexsys shape $\times 1000/1284$ \\
+Rooftop PV & Annual-yield normalisation             & 1,000~kWh/kWp & EV-profile shape $\times 1000/1284$ \\
 \bottomrule
 \end{tabular}
 \end{table}

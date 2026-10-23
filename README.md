@@ -14,7 +14,7 @@ A modular OWL ontology for the National Energy Digital Twin (NEDT) of the Irish 
 The NEDT ontology provides a shared, machine-interpretable vocabulary for a national-scale residential energy digital twin for Ireland. It connects:
 
 - **2.1 million dwellings** across 26 counties, encoded as 702 building archetypes
-- **Hourly Nexsys energy profiles** for electricity, heat, EV charging and rooftop PV
+- **Hourly archetype EV profiles** for electricity, heat, EV charging and rooftop PV
 - **ESB Networks LV substation** geometries and capacities
 - **SEAI domestic-PV grant records** and scenario trajectories (heat pumps, EVs, PV adoption)
 - **KPI evaluation** from dwelling level up to national level
@@ -65,9 +65,16 @@ Prefix:  nedt:
 URI:     https://example.org/nedt#
 ```
 
-The namespace is provisional pending registration of a durable PURL. Do not
-mint new production identifiers against a replacement namespace without an
-explicit migration plan.
+The [NEDT PURL](https://w3id.org/nedt/) resolves to this ontology file, but
+the term IRIs in version 1.4.0 still use `https://example.org/nedt#`.
+Resolution of the PURL is not an IRI migration: changing the canonical term
+namespace requires an explicit migration of the ontology, shapes, queries,
+instance graphs and dependent data.
+
+In the planning layer, `nedt:hasUtilisation` has domain
+`nedt:CapacityKPI` and range `nedt:Utilisation`. A capacity KPI is connected
+to its candidate station by `nedt:forLVStation`; utilisation is not asserted
+directly on the station.
 
 ---
 
@@ -78,7 +85,7 @@ explicit migration plan.
 | KPI | `KPI`, `KPIValue`, `KPICalculation`, `StrategicKPI`, `TacticalKPI`, `OperationalKPI` |
 | Archetype | `Archetype`, `ArchetypeCount`, `BERRating`, `DwellingType`, `ConstructionPeriod` |
 | Scenario | `Scenario`, `HPScenario`, `EVScenario`, `TransitionLedger`, `ScenarioParameter` |
-| Energy Load | `ElectricLoad`, `HeatLoad`, `CO2Emission`, `HourlyProfile`, `NexsysProfile` |
+| Energy Load | `ElectricLoad`, `HeatLoad`, `CO2Emission`, `HourlyProfile`, `EVProfile` |
 | LV Network | `LVStation`, `StationCapacity`, `Utilisation`, `UtilisationStatus`, `BuildingShare` |
 | Attribution | `OverloadedStation`, `OverloadAttribution`, `DominantDriver`, `RiskTable` |
 | Heat Density | `HeatDensity`, `ThermalDemandCluster`, `DHViabilityKPI`, `GroupHeatingCandidate` |
