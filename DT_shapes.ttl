@@ -326,3 +326,29 @@ nedt:TechnologyTransitionShape
     sh:property [ sh:path nedt:transitionCount ;
                   sh:datatype xsd:integer ; sh:minCount 1 ; sh:minInclusive 0 ;
                   sh:message "Transition count must be a non-negative integer." ] .
+
+# ---- ArchetypeCount (added 2026-11-05) --------------------
+# Covers both released conventions: county totals, linked from the archetype by
+# nedt:hasCount, and (station, archetype) cohorts using nedt:countsArchetype.
+nedt:ArchetypeCountShape
+    a sh:NodeShape ;
+    sh:targetClass nedt:ArchetypeCount ;
+    sh:property [ sh:path nedt:dwellingCount ;
+                  sh:datatype xsd:integer ;
+                  sh:minCount 1 ; sh:maxCount 1 ; sh:minInclusive 1 ;
+                  sh:message "An archetype count must carry exactly one positive integer dwelling count." ] ;
+    sh:property [ sh:path [ sh:alternativePath ( nedt:countsArchetype [ sh:inversePath nedt:hasCount ] ) ] ;
+                  sh:class nedt:Archetype ;
+                  sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:message "An archetype count must refer to exactly one archetype." ] ;
+    sh:property [ sh:path nedt:forLVStation ;
+                  sh:class nedt:LVStation ; sh:maxCount 1 ;
+                  sh:message "An archetype count may be scoped to at most one LV station." ] ;
+    sh:property [ sh:path nedt:inCounty ;
+                  sh:class nedt:County ; sh:maxCount 1 ;
+                  sh:message "An archetype count may be scoped to at most one county." ] ;
+    sh:or (
+        [ sh:property [ sh:path nedt:forLVStation ; sh:minCount 1 ] ]
+        [ sh:property [ sh:path nedt:inCounty ; sh:minCount 1 ] ]
+    ) ;
+    sh:message "An archetype count must be scoped to a station or a county." .
