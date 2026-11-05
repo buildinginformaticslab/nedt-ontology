@@ -708,14 +708,14 @@ nedt:usesBasemap a owl:ObjectProperty ;
     rdfs:domain nedt:DeckGLMap ;
     rdfs:range nedt:GeoLocation .
 
+nedt:usesEVProfile a owl:ObjectProperty ;
+    rdfs:domain nedt:EnergyLoad ;
+    rdfs:range nedt:EVProfile .
+
 nedt:usesHeatingSystem a owl:ObjectProperty ;
     rdfs:label "uses heating system"@en ;
     rdfs:comment "Domain is the union of Dwelling and Archetype." ;
     rdfs:range nedt:HeatingSystem .
-
-nedt:usesEVProfile a owl:ObjectProperty ;
-    rdfs:domain nedt:EnergyLoad ;
-    rdfs:range nedt:EVProfile .
 
 nedt:usesNoEVProfile a owl:ObjectProperty ;
     rdfs:domain nedt:EnergyLoad ;
@@ -734,45 +734,6 @@ nedt:viabilityThreshold_kWh_per_m2_yr a owl:DatatypeProperty ;
     rdfs:label "DH viability threshold (kWh/m²·yr)"@en ;
     rdfs:domain nedt:DHViabilityKPI ;
     rdfs:range xsd:decimal .
-
-inst:EndUse_appliance a nedt:EndUseLoad ;
-    rdfs:label "Appliance"@en ;
-    nedt:endUse "appliance" .
-
-inst:EndUse_cooking a nedt:EndUseLoad ;
-    rdfs:label "Cooking"@en ;
-    nedt:endUse "cooking" .
-
-inst:EndUse_dhw a nedt:EndUseLoad ;
-    rdfs:label "DHW"@en ;
-    nedt:endUse "dhw" .
-
-inst:EndUse_lighting a nedt:EndUseLoad ;
-    rdfs:label "Lighting"@en ;
-    nedt:endUse "lighting" .
-
-inst:Exp_SD_B2_post2011_S2_2035 a nedt:ExportedEnergy ;
-    sosa:hasSimpleResult 2104.5 ;
-    nedt:derivedUnder inst:Scenario_S2_2035 ;
-    nedt:hasKPIEvaluatedObject inst:PV_SD_B2_post2011_4kWp .
-
-inst:KPI_AnnualCO2 a nedt:KPI ;
-    rdfs:label "Annual CO2 Emissions" .
-
-inst:KPI_CountyPeak a nedt:CountyKPI ;
-    rdfs:label "County coincident peak demand"@en .
-
-inst:KPI_NatPeak a nedt:NationalKPI ;
-    rdfs:label "National coincident peak demand"@en .
-
-inst:KPI_PVSelfConsumption a nedt:KPI ;
-    rdfs:label "PV Self-Consumption Rate" .
-
-inst:KPI_PeakLVUtilisation a nedt:KPI ;
-    rdfs:label "Peak LV Utilisation" .
-
-inst:LVAgg_Louth_0412_S2_2035 a nedt:LVAggregation ;
-    rdfs:label "Aggregation LV_Louth_0412 / S2_2035"@en .
 
 inst:EVProfile_Apartment_A_1_HeatPump_2014_2024 a nedt:EVProfile ;
     rdfs:label "EVProfile·Apartment_A_1_HeatPump_2014_2024" ;
@@ -3173,6 +3134,45 @@ inst:EVProfile_Terraced_E_6_gasboiler_2014_2024 a nedt:EVProfile ;
 inst:EVProfile_Terraced_E_6_gasboiler_EV_2014_2024 a nedt:EVProfile ;
     rdfs:label "EVProfile·Terraced_E_6_gasboiler_EV_2014_2024" ;
     nedt:sourceFile "CountyAnalysis/2024_disaggregated/total_electricity copy 2/Terraced_E_6_gasboiler_EV_2014_2024.csv" .
+
+inst:EndUse_appliance a nedt:EndUseLoad ;
+    rdfs:label "Appliance"@en ;
+    nedt:endUse "appliance" .
+
+inst:EndUse_cooking a nedt:EndUseLoad ;
+    rdfs:label "Cooking"@en ;
+    nedt:endUse "cooking" .
+
+inst:EndUse_dhw a nedt:EndUseLoad ;
+    rdfs:label "DHW"@en ;
+    nedt:endUse "dhw" .
+
+inst:EndUse_lighting a nedt:EndUseLoad ;
+    rdfs:label "Lighting"@en ;
+    nedt:endUse "lighting" .
+
+inst:Exp_SD_B2_post2011_S2_2035 a nedt:ExportedEnergy ;
+    sosa:hasSimpleResult 2104.5 ;
+    nedt:derivedUnder inst:Scenario_S2_2035 ;
+    nedt:hasKPIEvaluatedObject inst:PV_SD_B2_post2011_4kWp .
+
+inst:KPI_AnnualCO2 a nedt:KPI ;
+    rdfs:label "Annual CO2 Emissions" .
+
+inst:KPI_CountyPeak a nedt:CountyKPI ;
+    rdfs:label "County coincident peak demand"@en .
+
+inst:KPI_NatPeak a nedt:NationalKPI ;
+    rdfs:label "National coincident peak demand"@en .
+
+inst:KPI_PVSelfConsumption a nedt:KPI ;
+    rdfs:label "PV Self-Consumption Rate" .
+
+inst:KPI_PeakLVUtilisation a nedt:KPI ;
+    rdfs:label "Peak LV Utilisation" .
+
+inst:LVAgg_Louth_0412_S2_2035 a nedt:LVAggregation ;
+    rdfs:label "Aggregation LV_Louth_0412 / S2_2035"@en .
 
 inst:OE_Louth_0412_20350118_1800 a nedt:OverloadEvent ;
     nedt:occursAt "2035-01-18T18:00:00"^^xsd:dateTime ;
@@ -37238,7 +37238,7 @@ inst:Peak_Louth_2035_S2 a nedt:CoincidentPeak ;
     sosa:hasSimpleResult 214.3 ;
     nedt:derivedUnder inst:Scenario_S2_2035 ;
     nedt:evaluatesCounty inst:County_Louth ;
-    nedt:evaluatesYear "2035"^^xsd:gYear .
+    nedt:evaluatesYear 2035 .
 
 inst:Period_1971_1990 a nedt:ConstructionPeriod ;
     rdfs:label "1971-1990"@en .
@@ -37249,8 +37249,8 @@ inst:Period_post2011 a nedt:ConstructionPeriod ;
 inst:RN_Louth_0412_2035 a nedt:ReinforcementNeed ;
     nedt:breachHours 127 ;
     nedt:derivedUnder inst:Scenario_S2_2035 ;
-    nedt:evaluatesYear "2035"^^xsd:gYear ;
-    nedt:firstBreachYear "2033"^^xsd:gYear ;
+    nedt:evaluatesYear 2035 ;
+    nedt:firstBreachYear 2033 ;
     nedt:hasKPIEvaluatedObject inst:LV_Louth_0412 .
 
 inst:SCR_SD_B2_post2011_S2_2035 a nedt:SelfConsumptionRatio ;
@@ -38392,13 +38392,13 @@ inst:SP_HP_TH_D1_2035 a nedt:ScenarioParameter ;
     rdfs:label "HP uptake"@en ;
     prov:wasDerivedFrom inst:Assumption_CAP_HP ;
     nedt:forArchetype inst:Arch_TH_D1_1971 ;
-    nedt:forYear "2035"^^xsd:gYear ;
+    nedt:forYear 2035 ;
     nedt:uptakeValue 0.40 .
 
 inst:SP_PV_SD_2035 a nedt:ScenarioParameter ;
     rdfs:label "PV installed kWp"@en ;
     nedt:forArchetype inst:Arch_SD_B2_post2011 ;
-    nedt:forYear "2035"^^xsd:gYear ;
+    nedt:forYear 2035 ;
     nedt:uptakeValue 4.0 .
 
 nedt:BERRating a owl:Class ;

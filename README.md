@@ -44,6 +44,7 @@ Or upload `DT_ontology.ttl` manually at [service.tib.eu/webvowl](https://service
 | `queries.rq` | Ready-to-run SPARQL queries |
 | `build_kg.py` | Script to build the knowledge graph from source data |
 | `populate_v11_instances.py` | Script to populate A-Box instances |
+| `build_national_cohort_graph.py` | Builds and validates the national (station, archetype) cohort graph from licensed source records; generated graphs are not distributed |
 | `Ontology.ipynb` | Ontology diagram generator (SVG) |
 | `ontology_query.ipynb` | SPARQL query workbench |
 | `DT_ontology_paper.md` | Full ontology specification and design rationale |

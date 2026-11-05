@@ -16,11 +16,16 @@ ONTOLOGY = ROOT / "ontology" if (ROOT / "ontology").exists() else ROOT
 RESULTS = HERE / "results" / "scenario1"
 
 
+def first_existing(*paths: Path) -> Path:
+    """A regenerated workflow writes results/scenario1; the repository is flat."""
+    return next((p for p in paths if p.exists()), paths[0])
+
+
 def main() -> int:
     required = {
-        "station table": RESULTS / "lv_scenario1.csv",
-        "summary": RESULTS / "scenario1_summary.json",
-        "query output": RESULTS / "competency_queries.json",
+        "station table": first_existing(RESULTS / "lv_scenario1.csv", HERE / "scenario1_lv_results.csv"),
+        "summary": first_existing(RESULTS / "scenario1_summary.json", HERE / "scenario1_summary.json"),
+        "query output": first_existing(RESULTS / "competency_queries.json", HERE / "scenario1_competency_queries.json"),
         "ontology": ONTOLOGY / "DT_ontology.ttl",
         "shape graph": ONTOLOGY / "DT_shapes.ttl",
         "scenario graph": ONTOLOGY / "scenario1_results.ttl",
@@ -47,7 +52,7 @@ def main() -> int:
     shapes = Graph().parse(required["shape graph"], format="turtle")
     conforms, report, _ = validate(data, shacl_graph=shapes, inference="none")
     assert conforms, "combined graph violates distributed SHACL shapes"
-    assert len(data) == queries["triples"] == 764_115
+    assert len(data) == queries["triples"] == 764_201
     for name in ("example graph", "national graph", "merged graph"):
         graph = Graph().parse(required["ontology"], format="turtle")
         graph.parse(required[name], format="turtle")

@@ -96,7 +96,7 @@ T(INST.Scenario_S2_2035, NEDT.hasScenarioYear, Literal(2035, datatype=XSD.intege
 T(INST.SP_HP_TH_D1_2035, RDF.type, NEDT.ScenarioParameter)
 T(INST.SP_HP_TH_D1_2035, RDFS.label, Literal("HP uptake", lang="en"))
 T(INST.SP_HP_TH_D1_2035, NEDT.forArchetype, INST.Arch_TH_D1_1971)
-T(INST.SP_HP_TH_D1_2035, NEDT.forYear, Literal("2035", datatype=XSD.gYear))
+T(INST.SP_HP_TH_D1_2035, NEDT.forYear, Literal(2035, datatype=XSD.integer))
 T(INST.SP_HP_TH_D1_2035, NEDT.uptakeValue, Literal("0.40", datatype=XSD.decimal))
 T(INST.Scenario_S2_2035, NEDT.hasScenarioParameter, INST.SP_HP_TH_D1_2035)
 
@@ -109,7 +109,7 @@ T(INST.SP_HP_TH_D1_2035, PROV.wasDerivedFrom, INST.Assumption_CAP_HP)
 T(INST.SP_PV_SD_2035, RDF.type, NEDT.ScenarioParameter)
 T(INST.SP_PV_SD_2035, RDFS.label, Literal("PV installed kWp", lang="en"))
 T(INST.SP_PV_SD_2035, NEDT.forArchetype, INST.Arch_SD_B2_post2011)
-T(INST.SP_PV_SD_2035, NEDT.forYear, Literal("2035", datatype=XSD.gYear))
+T(INST.SP_PV_SD_2035, NEDT.forYear, Literal(2035, datatype=XSD.integer))
 T(INST.SP_PV_SD_2035, NEDT.uptakeValue, Literal("4.0", datatype=XSD.decimal))
 T(INST.Scenario_S2_2035, NEDT.hasScenarioParameter, INST.SP_PV_SD_2035)
 
@@ -189,7 +189,7 @@ T(INST.KPI_NatPeak,    RDFS.label, Literal("National coincident peak demand", la
 T(INST.Peak_Louth_2035_S2, RDF.type, NEDT.CoincidentPeak)
 T(INST.Peak_Louth_2035_S2, RDFS.label, Literal("peak_Louth_2035_S2", lang="en"))
 T(INST.Peak_Louth_2035_S2, NEDT.evaluatesCounty, INST.County_Louth)
-T(INST.Peak_Louth_2035_S2, NEDT.evaluatesYear, Literal("2035", datatype=XSD.gYear))
+T(INST.Peak_Louth_2035_S2, NEDT.evaluatesYear, Literal(2035, datatype=XSD.integer))
 T(INST.Peak_Louth_2035_S2, NEDT.derivedUnder, INST.Scenario_S2_2035)
 T(INST.Peak_Louth_2035_S2, SOSA.hasSimpleResult,
   Literal("214.3", datatype=XSD.decimal))
@@ -200,9 +200,9 @@ T(INST.Peak_Louth_2035_S2, TIME.inXSDDateTimeStamp,
 T(INST.RN_Louth_0412_2035, RDF.type, NEDT.ReinforcementNeed)
 T(INST.RN_Louth_0412_2035, NEDT.hasKPIEvaluatedObject, INST.LV_Louth_0412)
 T(INST.RN_Louth_0412_2035, NEDT.firstBreachYear,
-  Literal("2033", datatype=XSD.gYear))
+  Literal(2033, datatype=XSD.integer))
 T(INST.RN_Louth_0412_2035, NEDT.evaluatesYear,
-  Literal("2035", datatype=XSD.gYear))
+  Literal(2035, datatype=XSD.integer))
 T(INST.RN_Louth_0412_2035, NEDT.breachHours, Literal(127, datatype=XSD.integer))
 T(INST.RN_Louth_0412_2035, NEDT.derivedUnder, INST.Scenario_S2_2035)
 

@@ -180,7 +180,7 @@ nedt:FlexibilityKPIShape  a sh:NodeShape ;
 #  graph reported in the NEDT journal paper.
 #
 #  These are deliberately falsifiable: they test value ranges,
-#  controlled vocabularies and cross-field consistency, not
+#  cardinalities and controlled vocabularies, not
 #  only the presence of triples that the ETL always emits.
 #############################################################
 
