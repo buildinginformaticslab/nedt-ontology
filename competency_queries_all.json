@@ -1,5 +1,5 @@
 {
-  "triples": 1249783,
+  "triples": 1249797,
   "sources": [
     "DT_ontology.ttl",
     "DT_kg.ttl",
@@ -11,9 +11,9 @@
     "CQ1": {
       "description": "Dwelling archetype cohorts per county",
       "rows": 26,
-      "median_ms": 353.84,
+      "median_ms": 377.17,
       "answered": true,
-      "skeleton_divergence": "Paper uses nedt:forCounty and nedt:hasCount; the graph uses nedt:inCounty and nedt:dwellingCount. nedt:hasCount is an ObjectProperty (Archetype -> ArchetypeCount) and cannot carry a literal.",
+      "skeleton_divergence": null,
       "sample": [
         [
           "https://example.org/nedt/inst/County_Dublin",
@@ -35,7 +35,7 @@
     "CQ2": {
       "description": "Building-stock attributes for an archetype",
       "rows": 50,
-      "median_ms": 17.69,
+      "median_ms": 18.36,
       "answered": true,
       "skeleton_divergence": null,
       "sample": [
@@ -65,7 +65,7 @@
     "CQ3": {
       "description": "Scenario parameters",
       "rows": 1,
-      "median_ms": 2.64,
+      "median_ms": 2.9,
       "answered": true,
       "skeleton_divergence": null,
       "sample": [
@@ -81,7 +81,7 @@
     "CQ4": {
       "description": "Technology transitions in the scenario",
       "rows": 280,
-      "median_ms": 18.71,
+      "median_ms": 20.03,
       "answered": true,
       "skeleton_divergence": null,
       "sample": [
@@ -108,9 +108,9 @@
     "CQ5": {
       "description": "Archetype breakdown for an LV station",
       "rows": 100,
-      "median_ms": 456.31,
+      "median_ms": 473.45,
       "answered": true,
-      "skeleton_divergence": "Paper uses nedt:instantiatesArchetype, whose domain is nedt:Dwelling; applying it to a cohort would entail cohorts are dwellings. Graph uses nedt:countsArchetype.",
+      "skeleton_divergence": null,
       "sample": [
         [
           "https://example.org/nedt/inst/s1_lv_station_BA___166Z_0002c9ac54",
@@ -132,9 +132,9 @@
     "CQ6": {
       "description": "Over-capacity LV stations under the scenario",
       "rows": 3378,
-      "median_ms": 2108.84,
+      "median_ms": 2244.89,
       "answered": true,
-      "skeleton_divergence": "Paper reads nedt:hasUtilisation as a literal; the graph reifies it as a nedt:Utilisation node carrying sosa:hasSimpleResult.",
+      "skeleton_divergence": null,
       "sample": [
         [
           "https://example.org/nedt/inst/s1_lv_station_BA___166Z_0002c9ac54",
@@ -159,7 +159,7 @@
     "CQ7": {
       "description": "Rooftop PV self-consumption and export by archetype",
       "rows": 60,
-      "median_ms": 7.08,
+      "median_ms": 7.36,
       "answered": true,
       "skeleton_divergence": null,
       "sample": [
@@ -213,7 +213,7 @@
     "CQ9": {
       "description": "National demand and contributing counties",
       "rows": 26,
-      "median_ms": 5.14,
+      "median_ms": 5.53,
       "answered": true,
       "skeleton_divergence": null,
       "sample": [
@@ -237,7 +237,7 @@
     "CQ10": {
       "description": "At-risk stations requiring reinforcement",
       "rows": 4071,
-      "median_ms": 2718.71,
+      "median_ms": 2890.68,
       "answered": true,
       "skeleton_divergence": null,
       "sample": [
@@ -261,7 +261,7 @@
     "CQ11": {
       "description": "Sensitivity of outcomes to a scenario parameter",
       "rows": 2,
-      "median_ms": 4.68,
+      "median_ms": 5.68,
       "answered": true,
       "skeleton_divergence": null,
       "sample": [
@@ -282,26 +282,26 @@
     "CQ12": {
       "description": "Provenance and assumptions behind a KPI",
       "rows": 100,
-      "median_ms": 9.06,
+      "median_ms": 8.02,
       "answered": true,
-      "skeleton_divergence": "Paper attaches assumptions directly to the KPI; the graph attaches them to the scenario the KPI was evaluated under, which avoids repeating them 37,287 times.",
+      "skeleton_divergence": null,
       "sample": [
         [
           "https://example.org/nedt/inst/capacity_kpi_s1_01___071Z_8c01b068a6",
           "https://example.org/nedt/inst/scenario_1_workflow_run",
-          "None",
+          "https://example.org/nedt/inst/dataset_archetype_counts_2024",
           "https://example.org/nedt/inst/assum_hp_share"
         ],
         [
           "https://example.org/nedt/inst/capacity_kpi_s1_01___071Z_8c01b068a6",
           "https://example.org/nedt/inst/scenario_1_workflow_run",
-          "None",
+          "https://example.org/nedt/inst/dataset_archetype_counts_2024",
           "https://example.org/nedt/inst/assum_ev_share"
         ],
         [
           "https://example.org/nedt/inst/capacity_kpi_s1_01___071Z_8c01b068a6",
           "https://example.org/nedt/inst/scenario_1_workflow_run",
-          "None",
+          "https://example.org/nedt/inst/dataset_archetype_counts_2024",
           "https://example.org/nedt/inst/assum_pv_share"
         ]
       ]
@@ -309,7 +309,7 @@
     "CQ13": {
       "description": "Dwellings assigned to an LV station",
       "rows": 200,
-      "median_ms": 5360.4,
+      "median_ms": 5691.23,
       "answered": true,
       "skeleton_divergence": null,
       "sample": [
@@ -334,11 +334,11 @@
       ]
     },
     "CQ14": {
-      "description": "MV roll-up from downstream LV stations",
+      "description": "Sum of downstream LV peaks by MV parent",
       "rows": 475,
-      "median_ms": 1310.43,
+      "median_ms": 1375.88,
       "answered": true,
-      "skeleton_divergence": "Sum of child peaks, not the coincident roll-up. The coincident value needs the summed hourly series, which the graph does not carry.",
+      "skeleton_divergence": null,
       "sample": [
         [
           "https://example.org/nedt/inst/mv_GLASMORE_b9998cc618",
@@ -360,7 +360,7 @@
     "CQ15": {
       "description": "Validation observation linked to a modelled profile",
       "rows": 26,
-      "median_ms": 5.22,
+      "median_ms": 5.59,
       "answered": true,
       "skeleton_divergence": null,
       "sample": [

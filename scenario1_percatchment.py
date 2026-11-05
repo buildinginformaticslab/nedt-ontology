@@ -136,12 +136,15 @@ def main() -> int:
     d.to_csv(out/"lv_scenario1.csv",index=False)
     # Attach the published availability snapshot for a compact reconciliation
     # artefact.  It is not treated as time-aligned overload ground truth.
-    esb = pd.read_csv(pc.ESB)
-    esb["k"] = pc.norm_station(esb["Station Name"])
-    audit = d.loc[d.requires_asset_audit].merge(
-        esb[["k", "installed_kva", "available_kva", "esb_load_kva", "esb_util", "esb_constrained"]],
-        on="k", how="left",
-    ).sort_values("utilisation", ascending=False)
+    audit = d.loc[d.requires_asset_audit]
+    if pc.ESB.exists():
+        esb = pd.read_csv(pc.ESB)
+        esb["k"] = pc.norm_station(esb["Station Name"])
+        audit = audit.merge(
+            esb[["k", "installed_kva", "available_kva", "esb_load_kva", "esb_util", "esb_constrained"]],
+            on="k", how="left",
+        )
+    audit = audit.sort_values("utilisation", ascending=False)
     audit.to_csv(out/"station_data_quality_audit.csv", index=False)
     audit.to_csv(out/"asset_reconciliation_exceptions.csv", index=False)
     summary = {

@@ -13,12 +13,15 @@ them to a licensed DT_Model data workspace with `--data-root` or the
 CountyAnalysis/ArchetypeCounts_CountyLevel2024/ArchetypeCounts_LV_heating.csv
 CountyAnalysis/2024_disaggregated/total_electricity copy 2/
 LV_analysis/LV Network Creation/station_capacities_2024_filled.csv
-catchment_methods_study/data/esb_lv_availability_2024.csv
-catchment_methods_study/data/BuildingMaster_LV_Assigned_2024.csv
+LV_analysis/2024/BuildingMaster_LV_Assigned_2024.csv
 lv_mv_hv/lv_stations_2024.csv
 EV_profiles/modified_uncontrolled_results_dynamic.xlsx
 CountyAnalysis/private_car_stock_county.csv
 ```
+
+An ESB availability snapshot at
+`catchment_methods_study/data/esb_lv_availability_2024.csv` is optional: when
+present it adds a comparison and reconciliation columns.
 
 The scripts check the shared inputs at start-up and stop with the missing
 paths rather than silently substituting data. The PV workbook and car-stock

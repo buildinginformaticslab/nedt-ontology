@@ -119,7 +119,7 @@ CQ: list[tuple[str, str, str, str | None]] = [
     ("CQ12", "Provenance and assumptions behind a KPI", """
         SELECT ?kpi ?activity ?dataset ?assumption
         WHERE { ?kpi a nedt:CapacityKPI ; prov:wasGeneratedBy ?activity .
-                OPTIONAL { ?activity prov:used ?dataset . }
+                ?activity prov:used ?dataset .
                 OPTIONAL { ?kpi nedt:evaluatedUnderScenario ?scn .
                            ?scn nedt:hasScenarioAssumption ?assumption . } }
         LIMIT 100""",

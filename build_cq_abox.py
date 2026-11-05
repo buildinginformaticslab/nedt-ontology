@@ -72,7 +72,7 @@ def main() -> int:
         root / "AEI-2006-PredictiveEnergyModelling/rerun_out/lv_per_catchment_2024.csv")
 
     counts_p = root / "CountyAnalysis/ArchetypeCounts_CountyLevel2024/ArchetypeCounts_LV_heating.csv"
-    bldg_p = root / "catchment_methods_study/data/BuildingMaster_LV_Assigned_2024.csv"
+    bldg_p = root / "LV_analysis/2024/BuildingMaster_LV_Assigned_2024.csv"
     lvnet_p = root / "lv_mv_hv/lv_stations_2024.csv"
     meas_p = root / "CountyAnalysis/2024_measured_electricity.csv"
     scen_p = root / "AEI-2006-PredictiveEnergyModelling/rerun_out/lv_scenario1_onebasis.csv"

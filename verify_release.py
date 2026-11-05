@@ -52,7 +52,7 @@ def main() -> int:
     shapes = Graph().parse(required["shape graph"], format="turtle")
     conforms, report, _ = validate(data, shacl_graph=shapes, inference="none")
     assert conforms, "combined graph violates distributed SHACL shapes"
-    assert len(data) == queries["triples"] == 764_201
+    assert len(data) == queries["triples"] == 764_220
     for name in ("example graph", "national graph", "merged graph"):
         graph = Graph().parse(required["ontology"], format="turtle")
         graph.parse(required[name], format="turtle")

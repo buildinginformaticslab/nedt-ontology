@@ -54,7 +54,7 @@ for county, entries in pv_rows.items():
     for yr, cnt, fund in entries:
         gr = INST[f"SEAIGrant_{slug(county)}_{yr}"]
         g.add((gr, RDF.type, NEDT.SEAIGrantRecord))
-        g.add((gr, NEDT.grantYear,       Literal(yr, datatype=XSD.gYear)))
+        g.add((gr, NEDT.grantYear,       Literal(yr, datatype=XSD.integer)))
         g.add((gr, NEDT.grantCount,      Literal(cnt, datatype=XSD.integer)))
         g.add((gr, NEDT.grantFundingEUR, Literal(fund, datatype=XSD.decimal)))
         g.add((INST[f"County_{slug(county)}"], NEDT.hasGrantRecord, gr))

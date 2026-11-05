@@ -13,7 +13,7 @@ A modular OWL ontology for the National Energy Digital Twin (NEDT) of the Irish 
 
 The NEDT ontology provides a shared, machine-interpretable vocabulary for a national-scale residential energy digital twin for Ireland. It connects:
 
-- **2.1 million dwellings** across 26 counties, encoded as 702 building archetypes
+- **2.1 million dwellings** across 26 counties, encoded as 608 building archetypes
 - **Hourly archetype EV profiles** for electricity, heat, EV charging and rooftop PV
 - **ESB Networks LV substation** geometries and capacities
 - **SEAI domestic-PV grant records** and scenario trajectories (heat pumps, EVs, PV adoption)
@@ -44,6 +44,7 @@ Or upload `DT_ontology.ttl` manually at [service.tib.eu/webvowl](https://service
 | `queries.rq` | Ready-to-run SPARQL queries |
 | `build_kg.py` | Script to build the knowledge graph from source data |
 | `populate_v11_instances.py` | Script to populate A-Box instances |
+| `operator_comparison.py` | Compares catchment-level screening flags with county-level peak allocation (licensed source records required) |
 | `build_national_cohort_graph.py` | Builds and validates the national (station, archetype) cohort graph from licensed source records; generated graphs are not distributed |
 | `Ontology.ipynb` | Ontology diagram generator (SVG) |
 | `ontology_query.ipynb` | SPARQL query workbench |

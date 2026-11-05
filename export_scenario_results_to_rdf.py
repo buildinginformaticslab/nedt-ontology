@@ -77,6 +77,20 @@ def main() -> int:
     graph.add((activity, RDFS.label, Literal("Scenario 1 workflow execution")))
     graph.add((activity, PROV.endedAtTime,
                Literal(datetime.now(timezone.utc).isoformat(), datatype=XSD.dateTime)))
+    # Inputs read by rerun_percatchment.py and scenario1_percatchment.py, so that
+    # every KPI traces through its generating activity to the source datasets.
+    for name, label in (
+        ("dataset_archetype_counts_2024", "SEAI/CSO archetype counts 2024"),
+        ("dataset_building_master_2024", "GeoDirectory building master, LV-assigned 2024"),
+        ("dataset_lv_network_2024", "ESB Networks LV asset register 2024"),
+        ("dataset_station_capacities_2024", "LV station rated capacities 2024"),
+        ("dataset_archetype_profiles_2024", "Hourly archetype electricity profile library 2024"),
+        ("dataset_ev_pv_profiles", "EV and rooftop-PV profile workbook"),
+        ("dataset_private_car_stock", "Private car stock by county"),
+    ):
+        graph.add((INST[name], RDF.type, PROV.Entity))
+        graph.add((INST[name], RDFS.label, Literal(label)))
+        graph.add((activity, PROV.used, INST[name]))
 
     for row in df.itertuples(index=False):
         # The national KG already contains a spatial-asset A-Box with partial
@@ -114,6 +128,8 @@ def main() -> int:
         if hasattr(row, "overload_hours"):
             graph.add((kpi, NEDT.hasOverloadHours,
                        Literal(int(row.overload_hours), datatype=XSD.integer)))
+        # The utilisation observation belongs to this scenario-specific KPI,
+        # as required by both the ontology domain and the SHACL shape.
         graph.add((kpi, NEDT.hasUtilisation, util))
         graph.add((util, RDF.type, NEDT.Utilisation))
         graph.add((util, SOSA.hasSimpleResult, decimal(row.utilisation)))

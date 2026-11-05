@@ -447449,6 +447449,27 @@ inst:capacity_kpi_s1_ZU___019_a759c15d2d a nedt:CapacityKPI ;
     nedt:hasUtilisation inst:utilisation_s1_ZU___019_a759c15d2d ;
     nedt:requiresAssetAudit false .
 
+inst:dataset_archetype_counts_2024 a prov:Entity ;
+    rdfs:label "SEAI/CSO archetype counts 2024" .
+
+inst:dataset_archetype_profiles_2024 a prov:Entity ;
+    rdfs:label "Hourly archetype electricity profile library 2024" .
+
+inst:dataset_building_master_2024 a prov:Entity ;
+    rdfs:label "GeoDirectory building master, LV-assigned 2024" .
+
+inst:dataset_ev_pv_profiles a prov:Entity ;
+    rdfs:label "EV and rooftop-PV profile workbook" .
+
+inst:dataset_lv_network_2024 a prov:Entity ;
+    rdfs:label "ESB Networks LV asset register 2024" .
+
+inst:dataset_private_car_stock a prov:Entity ;
+    rdfs:label "Private car stock by county" .
+
+inst:dataset_station_capacities_2024 a prov:Entity ;
+    rdfs:label "LV station rated capacities 2024" .
+
 inst:s1_lv_station_01___071Z_8c01b068a6 a nedt:LVStation ;
     rdfs:label "01***071Z" ;
     nedt:hasAssignedDwellingCount 4 ;
@@ -827085,5 +827106,12 @@ inst:scenario_1_2024 a nedt:Scenario ;
 
 inst:scenario_1_workflow_run a prov:Activity ;
     rdfs:label "Scenario 1 workflow execution" ;
-    prov:endedAtTime "2026-08-17T22:35:02.209704+00:00"^^xsd:dateTime .
+    prov:endedAtTime "2026-11-05T22:49:09.169320+00:00"^^xsd:dateTime ;
+    prov:used inst:dataset_archetype_counts_2024,
+        inst:dataset_archetype_profiles_2024,
+        inst:dataset_building_master_2024,
+        inst:dataset_ev_pv_profiles,
+        inst:dataset_lv_network_2024,
+        inst:dataset_private_car_stock,
+        inst:dataset_station_capacities_2024 .
 

@@ -147,12 +147,6 @@ nedt:ReversePowerFlowHour a owl:Class ;
     rdfs:subClassOf nedt:KPIValue ;
     nedt:layer "DT-model-extension"@en .
 
-nedt:ScenarioAssumption a owl:Class ;
-    rdfs:label "Scenario Assumption"@en ;
-    rdfs:comment "A written or sourced assumption underpinning a scenario parameter (CAP, SEAI, internal expert judgement)."@en ;
-    rdfs:subClassOf prov:Entity ;
-    nedt:layer "DT-model-extension"@en .
-
 nedt:SelfConsumptionRatio a owl:Class ;
     rdfs:label "Self-Consumption Ratio"@en ;
     rdfs:comment "Annual PV self-consumption as a fraction (0-1) of generation used on-site."@en ;
@@ -263,6 +257,12 @@ nedt:controllableFraction a owl:DatatypeProperty ;
     rdfs:domain nedt:FlexibleLoad ;
     rdfs:range xsd:decimal .
 
+nedt:countsArchetype a owl:ObjectProperty ;
+    rdfs:label "counts archetype"@en ;
+    rdfs:comment "Links a cohort to the archetype it counts. Distinct from instantiatesArchetype, which relates an individual dwelling to its archetype." ;
+    rdfs:domain nedt:ArchetypeCount ;
+    rdfs:range nedt:Archetype .
+
 nedt:derivedFromGrant a owl:ObjectProperty ;
     rdfs:domain nedt:PVAdoptionScenario ;
     rdfs:range nedt:SEAIGrantRecord .
@@ -271,6 +271,12 @@ nedt:derivedUnder a owl:ObjectProperty ;
     rdfs:label "derived under scenario"@en ;
     rdfs:domain nedt:KPIValue ;
     rdfs:range nedt:Scenario .
+
+nedt:dwellingCount a owl:DatatypeProperty ;
+    rdfs:label "dwelling count"@en ;
+    rdfs:comment "Number of dwellings in this archetype cohort within its scope (county or LV station)." ;
+    rdfs:domain nedt:ArchetypeCount ;
+    rdfs:range xsd:integer .
 
 nedt:eligibleBER a owl:DatatypeProperty ;
     rdfs:comment "All BER letters A–E admitted; no BER restriction in default deployment." ;
@@ -327,8 +333,13 @@ nedt:forCounty a owl:ObjectProperty ;
 
 nedt:forLVStation a owl:ObjectProperty ;
     rdfs:label "for LV station"@en ;
-    rdfs:domain nedt:CapacityKPI ;
+    rdfs:comment "Domain is the union of CapacityKPI and ArchetypeCount; left unasserted so that neither is inferred from the other."@en ;
     rdfs:range nedt:LVStation .
+
+nedt:forParameter a owl:ObjectProperty ;
+    rdfs:label "for parameter"@en ;
+    rdfs:domain nedt:SensitivityResult ;
+    rdfs:range nedt:ScenarioVariable .
 
 nedt:forYear a owl:DatatypeProperty ;
     rdfs:label "for year"@en ;
@@ -357,9 +368,29 @@ nedt:grantYear a owl:DatatypeProperty ;
     rdfs:domain nedt:SEAIGrantRecord ;
     rdfs:range xsd:integer .
 
+nedt:hasAnnualCO2 a owl:DatatypeProperty ;
+    rdfs:label "annual CO2 (kt)"@en ;
+    rdfs:range xsd:decimal .
+
+nedt:hasAnnualEnergyUse a owl:DatatypeProperty ;
+    rdfs:label "annual energy use (GWh)"@en ;
+    rdfs:range xsd:decimal .
+
 nedt:hasArchetype a owl:ObjectProperty ;
     rdfs:domain nedt:County ;
     rdfs:range nedt:Archetype .
+
+nedt:hasArchetypeToAssignmentRatio a owl:DatatypeProperty ;
+    rdfs:label "archetype-to-assignment ratio"@en ;
+    rdfs:comment "Ratio of the archetype population used in a station demand calculation to the independently assigned dwelling total."@en ;
+    rdfs:domain nedt:CapacityKPI ;
+    rdfs:range xsd:decimal .
+
+nedt:hasAssignedDwellingCount a owl:DatatypeProperty ;
+    rdfs:label "assigned dwelling count"@en ;
+    rdfs:comment "Dwelling total in the independent building-to-station assignment input used for reconciliation diagnostics."@en ;
+    rdfs:domain nedt:LVStation ;
+    rdfs:range xsd:integer .
 
 nedt:hasAssignmentDistanceM a owl:DatatypeProperty ;
     rdfs:label "assignment distance (m)"@en ;
@@ -369,6 +400,16 @@ nedt:hasAssignmentDistanceM a owl:DatatypeProperty ;
 nedt:hasAssociatedKPI a owl:ObjectProperty ;
     rdfs:domain nedt:PerformanceGoal ;
     rdfs:range nedt:KPI .
+
+nedt:hasAssumptionBasis a owl:DatatypeProperty ;
+    rdfs:label "assumption basis"@en ;
+    rdfs:domain nedt:ScenarioAssumption ;
+    rdfs:range xsd:string .
+
+nedt:hasAssumptionText a owl:DatatypeProperty ;
+    rdfs:label "assumption text"@en ;
+    rdfs:domain nedt:ScenarioAssumption ;
+    rdfs:range xsd:string .
 
 nedt:hasAttribution a owl:ObjectProperty ;
     rdfs:domain nedt:OverloadedStation ;
@@ -433,9 +474,21 @@ nedt:hasCoincidenceFactor a owl:DatatypeProperty ;
     rdfs:domain nedt:StationLoad ;
     rdfs:range xsd:decimal .
 
+nedt:hasContributionToNationalPeak a owl:DatatypeProperty ;
+    rdfs:label "contribution to national peak (MW)"@en ;
+    rdfs:comment "The county's demand at the hour of the national coincident peak, not its own peak." ;
+    rdfs:domain nedt:CountyDemandAggregate ;
+    rdfs:range xsd:decimal .
+
 nedt:hasCount a owl:ObjectProperty ;
     rdfs:domain nedt:Archetype ;
     rdfs:range nedt:ArchetypeCount .
+
+nedt:hasCountReconciliationFlag a owl:DatatypeProperty ;
+    rdfs:label "count reconciliation flag"@en ;
+    rdfs:comment "True when archetype and building-assignment counts differ by more than 20 percent; it is a diagnostic, not an exclusion."@en ;
+    rdfs:domain nedt:CapacityKPI ;
+    rdfs:range xsd:boolean .
 
 nedt:hasCountyCalibrationFactor a owl:DatatypeProperty ;
     rdfs:label "county electricity calibration factor"@en ;
@@ -488,6 +541,11 @@ nedt:hasElec a owl:ObjectProperty ;
     rdfs:domain nedt:EnergyLoad ;
     rdfs:range nedt:ElectricLoad .
 
+nedt:hasEmissionFactor a owl:DatatypeProperty ;
+    rdfs:label "emission factor (kgCO2/kWh)"@en ;
+    rdfs:comment "Recorded on the aggregate so that reported CO2 is never separated from the factor used to derive it." ;
+    rdfs:range xsd:decimal .
+
 nedt:hasEvalTimeStep a owl:ObjectProperty ;
     rdfs:domain nedt:KPICalculation ;
     rdfs:range time:Interval .
@@ -495,6 +553,11 @@ nedt:hasEvalTimeStep a owl:ObjectProperty ;
 nedt:hasFuelComponent a owl:ObjectProperty ;
     rdfs:domain nedt:HeatDensityGDF ;
     rdfs:range nedt:HeatFuelComponent .
+
+nedt:hasGridExport a owl:DatatypeProperty ;
+    rdfs:label "grid export (kWh/yr)"@en ;
+    rdfs:domain nedt:FlexibilityState ;
+    rdfs:range xsd:decimal .
 
 nedt:hasHP a owl:ObjectProperty ;
     rdfs:domain nedt:ElectricLoad ;
@@ -504,6 +567,12 @@ nedt:hasHPAdoptionFraction a owl:DatatypeProperty ;
     rdfs:label "HP adoption fraction"@en ;
     rdfs:domain nedt:Scenario ;
     rdfs:range xsd:decimal .
+
+nedt:hasHPEVCoAdoptionCount a owl:DatatypeProperty ;
+    rdfs:label "HP-EV co-adoption count"@en ;
+    rdfs:comment "Number of incremental EV assignments allocated to heat-pump-transition cohorts under a scenario."@en ;
+    rdfs:domain nedt:Scenario ;
+    rdfs:range xsd:integer .
 
 nedt:hasHeat a owl:ObjectProperty ;
     rdfs:domain nedt:EnergyLoad ;
@@ -524,6 +593,16 @@ nedt:hasKPIEvaluatedObject a owl:ObjectProperty ;
 nedt:hasLoad a owl:ObjectProperty ;
     rdfs:domain nedt:LVStation ;
     rdfs:range nedt:StationLoad .
+
+nedt:hasMarginalEffectOnCO2 a owl:DatatypeProperty ;
+    rdfs:label "marginal effect on CO2 (kt per percentage point)"@en ;
+    rdfs:domain nedt:SensitivityResult ;
+    rdfs:range xsd:decimal .
+
+nedt:hasMarginalEffectOnPeak a owl:DatatypeProperty ;
+    rdfs:label "marginal effect on peak (MW per percentage point)"@en ;
+    rdfs:domain nedt:SensitivityResult ;
+    rdfs:range xsd:decimal .
 
 nedt:hasMeasuredValue a owl:DatatypeProperty ;
     rdfs:label "measured value"@en ;
@@ -574,9 +653,19 @@ nedt:hasPeakDemandKW a owl:DatatypeProperty ;
     rdfs:domain nedt:CapacityKPI ;
     rdfs:range xsd:decimal .
 
+nedt:hasPeakDemandMW a owl:DatatypeProperty ;
+    rdfs:label "peak demand (MW)"@en ;
+    rdfs:comment "Domain is the union of CountyDemandAggregate and NationalDemandAggregate." ;
+    rdfs:range xsd:decimal .
+
 nedt:hasPerformanceGoal a owl:ObjectProperty ;
     rdfs:domain nedt:Stakeholder ;
     rdfs:range nedt:PerformanceGoal .
+
+nedt:hasPerturbation a owl:DatatypeProperty ;
+    rdfs:label "perturbation applied (percentage points)"@en ;
+    rdfs:domain nedt:SensitivityResult ;
+    rdfs:range xsd:decimal .
 
 nedt:hasProfileKey a owl:ObjectProperty ;
     rdfs:label "has profile key"@en ;
@@ -588,10 +677,21 @@ nedt:hasRatedCapacityKVA a owl:DatatypeProperty ;
     rdfs:domain nedt:CapacityKPI ;
     rdfs:range xsd:decimal .
 
+nedt:hasReverseFlowHours a owl:DatatypeProperty ;
+    rdfs:label "reverse-flow hours"@en ;
+    rdfs:comment "Hours per year in which on-site generation exceeds on-site demand." ;
+    rdfs:domain nedt:FlexibilityState ;
+    rdfs:range xsd:integer .
+
 nedt:hasRiskTable a owl:ObjectProperty ;
     rdfs:label "has risk table"@en ;
     rdfs:domain nedt:Scenario ;
     rdfs:range nedt:RiskTable .
+
+nedt:hasScenarioAssumption a owl:ObjectProperty ;
+    rdfs:label "has scenario assumption"@en ;
+    rdfs:comment "Links a derived indicator to the named assumptions it depends on. Domain is the union of KPI and CapacityKPI." ;
+    rdfs:range nedt:ScenarioAssumption .
 
 nedt:hasScenarioParameter a owl:ObjectProperty ;
     rdfs:label "has scenario parameter"@en ;
@@ -606,6 +706,12 @@ nedt:hasScenarioYear a owl:DatatypeProperty ;
 nedt:hasSections a owl:ObjectProperty ;
     rdfs:domain nedt:HTMLReport ;
     rdfs:range nedt:ReportSection .
+
+nedt:hasSelfConsumptionRatio a owl:DatatypeProperty ;
+    rdfs:label "self-consumption ratio"@en ;
+    rdfs:comment "Fraction of on-site generation consumed on site, in [0,1]." ;
+    rdfs:domain nedt:FlexibilityState ;
+    rdfs:range xsd:decimal .
 
 nedt:hasServiceArea a owl:ObjectProperty ;
     rdfs:label "has service area"@en ;
@@ -644,7 +750,7 @@ nedt:hasTransitionKey a owl:ObjectProperty ;
     rdfs:range nedt:TransitionKey .
 
 nedt:hasUtilisation a owl:ObjectProperty ;
-    rdfs:domain nedt:LVStation ;
+    rdfs:domain nedt:CapacityKPI ;
     rdfs:range nedt:Utilisation .
 
 nedt:heatDemand_kWh_per_m2_yr a owl:DatatypeProperty ;
@@ -731,10 +837,22 @@ nedt:recordsIn a owl:ObjectProperty ;
     rdfs:domain nedt:Scenario ;
     rdfs:range nedt:TransitionLedger .
 
+nedt:requiresAssetAudit a owl:DatatypeProperty ;
+    rdfs:label "requires asset audit"@en ;
+    rdfs:comment "True for an extreme model output requiring asset-register and connectivity reconciliation before planning interpretation."@en ;
+    rdfs:domain nedt:CapacityKPI ;
+    rdfs:range xsd:boolean .
+
 nedt:resolvesTo a owl:ObjectProperty ;
     rdfs:label "resolves to profile"@en ;
     rdfs:domain nedt:ProfileKey ;
     rdfs:range nedt:EVProfile .
+
+nedt:scenarioStateOf a owl:ObjectProperty ;
+    rdfs:label "scenario state of station"@en ;
+    rdfs:comment "Links a scenario-scoped station representation to the canonical physical asset identity."@en ;
+    rdfs:domain nedt:LVStation ;
+    rdfs:range nedt:LVStation .
 
 nedt:summarisesDensity a owl:ObjectProperty ;
     rdfs:label "summarises heat density"@en ;
@@ -774,14 +892,14 @@ nedt:usesBasemap a owl:ObjectProperty ;
     rdfs:domain nedt:DeckGLMap ;
     rdfs:range nedt:GeoLocation .
 
+nedt:usesEVProfile a owl:ObjectProperty ;
+    rdfs:domain nedt:EnergyLoad ;
+    rdfs:range nedt:EVProfile .
+
 nedt:usesHeatingSystem a owl:ObjectProperty ;
     rdfs:label "uses heating system"@en ;
     rdfs:comment "Domain is the union of Dwelling and Archetype." ;
     rdfs:range nedt:HeatingSystem .
-
-nedt:usesEVProfile a owl:ObjectProperty ;
-    rdfs:domain nedt:EnergyLoad ;
-    rdfs:range nedt:EVProfile .
 
 nedt:usesNoEVProfile a owl:ObjectProperty ;
     rdfs:domain nedt:EnergyLoad ;
@@ -800,15 +918,6 @@ nedt:viabilityThreshold_kWh_per_m2_yr a owl:DatatypeProperty ;
     rdfs:label "DH viability threshold (kWh/m²·yr)"@en ;
     rdfs:domain nedt:DHViabilityKPI ;
     rdfs:range xsd:decimal .
-
-inst:KPI_AnnualCO2 a nedt:KPI ;
-    rdfs:label "Annual CO2 Emissions" .
-
-inst:KPI_PVSelfConsumption a nedt:KPI ;
-    rdfs:label "PV Self-Consumption Rate" .
-
-inst:KPI_PeakLVUtilisation a nedt:KPI ;
-    rdfs:label "Peak LV Utilisation" .
 
 inst:EVProfile_Apartment_A_1_HeatPump_2014_2024 a nedt:EVProfile ;
     rdfs:label "EVProfile·Apartment_A_1_HeatPump_2014_2024" ;
@@ -3210,6 +3319,15 @@ inst:EVProfile_Terraced_E_6_gasboiler_EV_2014_2024 a nedt:EVProfile ;
     rdfs:label "EVProfile·Terraced_E_6_gasboiler_EV_2014_2024" ;
     nedt:sourceFile "CountyAnalysis/2024_disaggregated/total_electricity copy 2/Terraced_E_6_gasboiler_EV_2014_2024.csv" .
 
+inst:KPI_AnnualCO2 a nedt:KPI ;
+    rdfs:label "Annual CO2 Emissions" .
+
+inst:KPI_PVSelfConsumption a nedt:KPI ;
+    rdfs:label "PV Self-Consumption Rate" .
+
+inst:KPI_PeakLVUtilisation a nedt:KPI ;
+    rdfs:label "Peak LV Utilisation" .
+
 inst:PVAdoptionScenario_AsIs_2025 a nedt:PVAdoptionScenario ;
     rdfs:label "AS-IS PV adoption (SEAI 2018–2025 cumulative)" ;
     nedt:hasCapacityMix inst:PVCapacityMix_IE2017 ;
@@ -3244,11 +3362,6 @@ nedt:CO2Emission a owl:Class ;
 
 nedt:ColourPalette a owl:Class ;
     rdfs:label "Colour Palette"@en ;
-    nedt:layer "DT-model-extension"@en .
-
-nedt:CountyDemandAggregate a owl:Class ;
-    rdfs:label "County Demand Aggregate"@en ;
-    rdfs:subClassOf nedt:CountyKPI ;
     nedt:layer "DT-model-extension"@en .
 
 nedt:CountyKPI a owl:Class ;
@@ -3358,6 +3471,11 @@ nedt:PVReferenceShape a owl:Class ;
 
 nedt:ReportSection a owl:Class ;
     rdfs:label "Report Section"@en ;
+    nedt:layer "DT-model-extension"@en .
+
+nedt:ScenarioVariable a owl:Class ;
+    rdfs:label "Scenario Variable"@en ;
+    rdfs:comment "A scenario-level control such as a national adoption fraction. Distinct from nedt:ScenarioParameter, which carries a per-archetype, per-year uptake value." ;
     nedt:layer "DT-model-extension"@en .
 
 nedt:SmallArea a owl:Class ;
@@ -37130,1132 +37248,1132 @@ inst:PVCapacityMix_IE2017 a nedt:PVCapacityMix ;
 inst:SEAIGrant_Carlow_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 3 ;
     nedt:grantFundingEUR 6390.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Carlow_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 28 ;
     nedt:grantFundingEUR 67670.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Carlow_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 46 ;
     nedt:grantFundingEUR 127465.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Carlow_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 51 ;
     nedt:grantFundingEUR 120950.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Carlow_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 117 ;
     nedt:grantFundingEUR 281490.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Carlow_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 270 ;
     nedt:grantFundingEUR 634440.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Carlow_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 392 ;
     nedt:grantFundingEUR 867525.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Carlow_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 375 ;
     nedt:grantFundingEUR 737725.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Carlow_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 88 ;
     nedt:grantFundingEUR 167344.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Cavan_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 3 ;
     nedt:grantFundingEUR 6530.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Cavan_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 54 ;
     nedt:grantFundingEUR 125430.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Cavan_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 61 ;
     nedt:grantFundingEUR 140080.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Cavan_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 85 ;
     nedt:grantFundingEUR 173850.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Cavan_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 161 ;
     nedt:grantFundingEUR 383880.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Cavan_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 314 ;
     nedt:grantFundingEUR 738270.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Cavan_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 400 ;
     nedt:grantFundingEUR 901765.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Cavan_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 417 ;
     nedt:grantFundingEUR 814824.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Cavan_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 105 ;
     nedt:grantFundingEUR 212985.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Clare_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1 ;
     nedt:grantFundingEUR 1260.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Clare_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 32 ;
     nedt:grantFundingEUR 84200.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Clare_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 59 ;
     nedt:grantFundingEUR 161990.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Clare_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 103 ;
     nedt:grantFundingEUR 258320.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Clare_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 332 ;
     nedt:grantFundingEUR 855780.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Clare_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 752 ;
     nedt:grantFundingEUR 1792560.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Clare_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 932 ;
     nedt:grantFundingEUR 2067410.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Clare_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1248 ;
     nedt:grantFundingEUR 2492979.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Clare_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 245 ;
     nedt:grantFundingEUR 499731.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Cork_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 4 ;
     nedt:grantFundingEUR 5600.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Cork_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 129 ;
     nedt:grantFundingEUR 326270.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Cork_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 268 ;
     nedt:grantFundingEUR 690110.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Cork_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 437 ;
     nedt:grantFundingEUR 1021434.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Cork_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1192 ;
     nedt:grantFundingEUR 2971920.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Cork_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 2698 ;
     nedt:grantFundingEUR 6369660.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Cork_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 3126 ;
     nedt:grantFundingEUR 6879240.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Cork_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 4375 ;
     nedt:grantFundingEUR 8571942.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Cork_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 937 ;
     nedt:grantFundingEUR 1787217.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Donegal_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 8 ;
     nedt:grantFundingEUR 17560.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Donegal_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 40 ;
     nedt:grantFundingEUR 114780.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Donegal_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 81 ;
     nedt:grantFundingEUR 216320.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Donegal_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 128 ;
     nedt:grantFundingEUR 305608.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Donegal_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 168 ;
     nedt:grantFundingEUR 414960.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Donegal_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 529 ;
     nedt:grantFundingEUR 1263570.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Donegal_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 675 ;
     nedt:grantFundingEUR 1503290.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Donegal_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 809 ;
     nedt:grantFundingEUR 1615900.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Donegal_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 162 ;
     nedt:grantFundingEUR 289540.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Dublin_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 18 ;
     nedt:grantFundingEUR 32070.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Dublin_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 372 ;
     nedt:grantFundingEUR 826920.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Dublin_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 570 ;
     nedt:grantFundingEUR 1366203.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Dublin_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 809 ;
     nedt:grantFundingEUR 1790366.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Dublin_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1952 ;
     nedt:grantFundingEUR 4556850.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Dublin_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 5117 ;
     nedt:grantFundingEUR 11749110.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Dublin_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 6315 ;
     nedt:grantFundingEUR 13815615.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Dublin_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 6421 ;
     nedt:grantFundingEUR 12501832.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Dublin_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1305 ;
     nedt:grantFundingEUR 2423888.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Galway_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 2 ;
     nedt:grantFundingEUR 2800.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Galway_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 104 ;
     nedt:grantFundingEUR 281990.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Galway_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 129 ;
     nedt:grantFundingEUR 362930.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Galway_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 274 ;
     nedt:grantFundingEUR 661320.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Galway_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 650 ;
     nedt:grantFundingEUR 1641230.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Galway_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1406 ;
     nedt:grantFundingEUR 3334050.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Galway_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1906 ;
     nedt:grantFundingEUR 4221570.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Galway_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 2062 ;
     nedt:grantFundingEUR 4093118.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Galway_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 469 ;
     nedt:grantFundingEUR 927035.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Kerry_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 39 ;
     nedt:grantFundingEUR 103410.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Kerry_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 75 ;
     nedt:grantFundingEUR 201330.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Kerry_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 100 ;
     nedt:grantFundingEUR 241740.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Kerry_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 309 ;
     nedt:grantFundingEUR 763800.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Kerry_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 662 ;
     nedt:grantFundingEUR 1578360.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Kerry_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 946 ;
     nedt:grantFundingEUR 2070830.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Kerry_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1211 ;
     nedt:grantFundingEUR 2435079.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Kerry_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 251 ;
     nedt:grantFundingEUR 480831.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Kildare_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 10 ;
     nedt:grantFundingEUR 13720.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Kildare_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 158 ;
     nedt:grantFundingEUR 371070.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Kildare_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 190 ;
     nedt:grantFundingEUR 493821.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Kildare_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 295 ;
     nedt:grantFundingEUR 698340.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Kildare_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 629 ;
     nedt:grantFundingEUR 1527990.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Kildare_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1166 ;
     nedt:grantFundingEUR 2734230.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Kildare_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1485 ;
     nedt:grantFundingEUR 3295395.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Kildare_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1868 ;
     nedt:grantFundingEUR 3594176.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Kildare_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 427 ;
     nedt:grantFundingEUR 804957.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Kilkenny_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 58 ;
     nedt:grantFundingEUR 129380.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Kilkenny_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 91 ;
     nedt:grantFundingEUR 222620.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Kilkenny_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 85 ;
     nedt:grantFundingEUR 195980.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Kilkenny_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 238 ;
     nedt:grantFundingEUR 598890.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Kilkenny_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 543 ;
     nedt:grantFundingEUR 1286790.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Kilkenny_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 667 ;
     nedt:grantFundingEUR 1481170.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Kilkenny_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 778 ;
     nedt:grantFundingEUR 1519622.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Kilkenny_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 181 ;
     nedt:grantFundingEUR 335584.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Laois_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 2 ;
     nedt:grantFundingEUR 2660.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Laois_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 32 ;
     nedt:grantFundingEUR 84640.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Laois_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 63 ;
     nedt:grantFundingEUR 150706.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Laois_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 98 ;
     nedt:grantFundingEUR 225000.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Laois_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 184 ;
     nedt:grantFundingEUR 459960.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Laois_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 367 ;
     nedt:grantFundingEUR 864810.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Laois_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 519 ;
     nedt:grantFundingEUR 1137375.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Laois_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 585 ;
     nedt:grantFundingEUR 1163656.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Laois_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 145 ;
     nedt:grantFundingEUR 280024.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Leitrim_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 13 ;
     nedt:grantFundingEUR 29780.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Leitrim_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 29 ;
     nedt:grantFundingEUR 67660.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Leitrim_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 33 ;
     nedt:grantFundingEUR 81870.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Leitrim_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 104 ;
     nedt:grantFundingEUR 264420.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Leitrim_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 129 ;
     nedt:grantFundingEUR 305910.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Leitrim_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 166 ;
     nedt:grantFundingEUR 369245.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Leitrim_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 227 ;
     nedt:grantFundingEUR 459166.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Leitrim_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 38 ;
     nedt:grantFundingEUR 67800.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Limerick_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 3 ;
     nedt:grantFundingEUR 6600.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Limerick_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 29 ;
     nedt:grantFundingEUR 64850.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Limerick_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 67 ;
     nedt:grantFundingEUR 174490.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Limerick_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 110 ;
     nedt:grantFundingEUR 254910.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Limerick_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 309 ;
     nedt:grantFundingEUR 763770.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Limerick_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 861 ;
     nedt:grantFundingEUR 2041110.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Limerick_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1143 ;
     nedt:grantFundingEUR 2525405.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Limerick_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1911 ;
     nedt:grantFundingEUR 3764594.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Limerick_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 417 ;
     nedt:grantFundingEUR 813024.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Longford_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 30 ;
     nedt:grantFundingEUR 64600.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Longford_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 27 ;
     nedt:grantFundingEUR 64570.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Longford_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 33 ;
     nedt:grantFundingEUR 66510.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Longford_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 73 ;
     nedt:grantFundingEUR 172680.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Longford_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 123 ;
     nedt:grantFundingEUR 287310.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Longford_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 181 ;
     nedt:grantFundingEUR 404960.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Longford_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 243 ;
     nedt:grantFundingEUR 511475.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Longford_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 52 ;
     nedt:grantFundingEUR 98002.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Louth_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 86 ;
     nedt:grantFundingEUR 177620.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Louth_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 99 ;
     nedt:grantFundingEUR 228440.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Louth_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 140 ;
     nedt:grantFundingEUR 329610.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Louth_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 318 ;
     nedt:grantFundingEUR 764460.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Louth_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 678 ;
     nedt:grantFundingEUR 1592760.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Louth_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 981 ;
     nedt:grantFundingEUR 2156065.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Louth_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 899 ;
     nedt:grantFundingEUR 1758510.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Louth_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 216 ;
     nedt:grantFundingEUR 388122.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Mayo_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1 ;
     nedt:grantFundingEUR 1400.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Mayo_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 31 ;
     nedt:grantFundingEUR 69190.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Mayo_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 57 ;
     nedt:grantFundingEUR 155310.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Mayo_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 80 ;
     nedt:grantFundingEUR 179310.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Mayo_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 288 ;
     nedt:grantFundingEUR 707820.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Mayo_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 538 ;
     nedt:grantFundingEUR 1284600.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Mayo_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 814 ;
     nedt:grantFundingEUR 1820315.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Mayo_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1108 ;
     nedt:grantFundingEUR 2229050.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Mayo_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 209 ;
     nedt:grantFundingEUR 419877.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Meath_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 3 ;
     nedt:grantFundingEUR 4200.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Meath_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 121 ;
     nedt:grantFundingEUR 259680.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Meath_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 200 ;
     nedt:grantFundingEUR 492745.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Meath_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 242 ;
     nedt:grantFundingEUR 547670.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Meath_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 572 ;
     nedt:grantFundingEUR 1364520.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Meath_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1182 ;
     nedt:grantFundingEUR 2789820.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Meath_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1750 ;
     nedt:grantFundingEUR 3811955.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Meath_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1635 ;
     nedt:grantFundingEUR 3151152.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Meath_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 416 ;
     nedt:grantFundingEUR 777791.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Monaghan_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1 ;
     nedt:grantFundingEUR 1400.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Monaghan_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 23 ;
     nedt:grantFundingEUR 50560.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Monaghan_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 46 ;
     nedt:grantFundingEUR 100540.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Monaghan_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 66 ;
     nedt:grantFundingEUR 134700.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Monaghan_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 125 ;
     nedt:grantFundingEUR 301020.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Monaghan_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 258 ;
     nedt:grantFundingEUR 612750.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Monaghan_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 260 ;
     nedt:grantFundingEUR 581770.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Monaghan_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 325 ;
     nedt:grantFundingEUR 639405.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Monaghan_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 66 ;
     nedt:grantFundingEUR 138627.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Offaly_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 35 ;
     nedt:grantFundingEUR 81570.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Offaly_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 57 ;
     nedt:grantFundingEUR 144550.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Offaly_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 69 ;
     nedt:grantFundingEUR 167940.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Offaly_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 169 ;
     nedt:grantFundingEUR 417690.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Offaly_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 310 ;
     nedt:grantFundingEUR 732030.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Offaly_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 487 ;
     nedt:grantFundingEUR 1077870.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Offaly_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 597 ;
     nedt:grantFundingEUR 1198404.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Offaly_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 168 ;
     nedt:grantFundingEUR 316726.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Roscommon_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1 ;
     nedt:grantFundingEUR 3800.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Roscommon_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 31 ;
     nedt:grantFundingEUR 71940.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Roscommon_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 69 ;
     nedt:grantFundingEUR 179610.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Roscommon_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 76 ;
     nedt:grantFundingEUR 179130.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Roscommon_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 160 ;
     nedt:grantFundingEUR 390210.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Roscommon_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 338 ;
     nedt:grantFundingEUR 803100.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Roscommon_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 421 ;
     nedt:grantFundingEUR 934140.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Roscommon_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 462 ;
     nedt:grantFundingEUR 917436.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Roscommon_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 94 ;
     nedt:grantFundingEUR 183042.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Sligo_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 3 ;
     nedt:grantFundingEUR 4200.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Sligo_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 40 ;
     nedt:grantFundingEUR 87360.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Sligo_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 72 ;
     nedt:grantFundingEUR 182380.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Sligo_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 110 ;
     nedt:grantFundingEUR 271050.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Sligo_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 187 ;
     nedt:grantFundingEUR 467580.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Sligo_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 367 ;
     nedt:grantFundingEUR 870870.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Sligo_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 405 ;
     nedt:grantFundingEUR 908755.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Sligo_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 630 ;
     nedt:grantFundingEUR 1257581.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Sligo_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 104 ;
     nedt:grantFundingEUR 190282.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Tipperary_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 65 ;
     nedt:grantFundingEUR 165520.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Tipperary_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 107 ;
     nedt:grantFundingEUR 289260.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Tipperary_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 161 ;
     nedt:grantFundingEUR 368100.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Tipperary_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 373 ;
     nedt:grantFundingEUR 935700.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Tipperary_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 682 ;
     nedt:grantFundingEUR 1621830.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Tipperary_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1009 ;
     nedt:grantFundingEUR 2212830.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Tipperary_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1392 ;
     nedt:grantFundingEUR 2759490.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Tipperary_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 295 ;
     nedt:grantFundingEUR 579531.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Waterford_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1 ;
     nedt:grantFundingEUR 1260.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Waterford_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 38 ;
     nedt:grantFundingEUR 86350.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Waterford_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 93 ;
     nedt:grantFundingEUR 240110.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Waterford_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 87 ;
     nedt:grantFundingEUR 203400.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Waterford_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 260 ;
     nedt:grantFundingEUR 651360.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Waterford_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 605 ;
     nedt:grantFundingEUR 1417290.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Waterford_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 751 ;
     nedt:grantFundingEUR 1654515.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Waterford_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1034 ;
     nedt:grantFundingEUR 2029144.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Waterford_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 218 ;
     nedt:grantFundingEUR 401524.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Westmeath_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 56 ;
     nedt:grantFundingEUR 119010.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Westmeath_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 77 ;
     nedt:grantFundingEUR 201890.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Westmeath_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 91 ;
     nedt:grantFundingEUR 204000.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Westmeath_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 207 ;
     nedt:grantFundingEUR 502230.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Westmeath_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 454 ;
     nedt:grantFundingEUR 1068690.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Westmeath_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 549 ;
     nedt:grantFundingEUR 1238550.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Westmeath_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 632 ;
     nedt:grantFundingEUR 1245148.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Westmeath_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 150 ;
     nedt:grantFundingEUR 288427.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Wexford_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1 ;
     nedt:grantFundingEUR 1400.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Wexford_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 90 ;
     nedt:grantFundingEUR 218440.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Wexford_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 135 ;
     nedt:grantFundingEUR 320130.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Wexford_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 151 ;
     nedt:grantFundingEUR 344877.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Wexford_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 470 ;
     nedt:grantFundingEUR 1129410.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Wexford_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 863 ;
     nedt:grantFundingEUR 2033730.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Wexford_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1152 ;
     nedt:grantFundingEUR 2552840.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Wexford_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1243 ;
     nedt:grantFundingEUR 2439038.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Wexford_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 314 ;
     nedt:grantFundingEUR 593087.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 inst:SEAIGrant_Wicklow_2018 a nedt:SEAIGrantRecord ;
     nedt:grantCount 6 ;
     nedt:grantFundingEUR 12500.0 ;
-    nedt:grantYear "2018"^^xsd:gYear .
+    nedt:grantYear 2018 .
 
 inst:SEAIGrant_Wicklow_2019 a nedt:SEAIGrantRecord ;
     nedt:grantCount 88 ;
     nedt:grantFundingEUR 211775.0 ;
-    nedt:grantYear "2019"^^xsd:gYear .
+    nedt:grantYear 2019 .
 
 inst:SEAIGrant_Wicklow_2020 a nedt:SEAIGrantRecord ;
     nedt:grantCount 148 ;
     nedt:grantFundingEUR 378060.0 ;
-    nedt:grantYear "2020"^^xsd:gYear .
+    nedt:grantYear 2020 .
 
 inst:SEAIGrant_Wicklow_2021 a nedt:SEAIGrantRecord ;
     nedt:grantCount 163 ;
     nedt:grantFundingEUR 382740.0 ;
-    nedt:grantYear "2021"^^xsd:gYear .
+    nedt:grantYear 2021 .
 
 inst:SEAIGrant_Wicklow_2022 a nedt:SEAIGrantRecord ;
     nedt:grantCount 470 ;
     nedt:grantFundingEUR 1141620.0 ;
-    nedt:grantYear "2022"^^xsd:gYear .
+    nedt:grantYear 2022 .
 
 inst:SEAIGrant_Wicklow_2023 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1002 ;
     nedt:grantFundingEUR 2347500.0 ;
-    nedt:grantYear "2023"^^xsd:gYear .
+    nedt:grantYear 2023 .
 
 inst:SEAIGrant_Wicklow_2024 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1128 ;
     nedt:grantFundingEUR 2499690.0 ;
-    nedt:grantYear "2024"^^xsd:gYear .
+    nedt:grantYear 2024 .
 
 inst:SEAIGrant_Wicklow_2025 a nedt:SEAIGrantRecord ;
     nedt:grantCount 1034 ;
     nedt:grantFundingEUR 2058624.0 ;
-    nedt:grantYear "2025"^^xsd:gYear .
+    nedt:grantYear 2025 .
 
 inst:SEAIGrant_Wicklow_2026 a nedt:SEAIGrantRecord ;
     nedt:grantCount 213 ;
     nedt:grantFundingEUR 400187.0 ;
-    nedt:grantYear "2026"^^xsd:gYear .
+    nedt:grantYear 2026 .
 
 nedt:ChartJSChart a owl:Class ;
     rdfs:label "Chart.js Chart"@en ;
@@ -38263,6 +38381,11 @@ nedt:ChartJSChart a owl:Class ;
 
 nedt:ContribRank a owl:Class ;
     rdfs:label "Contribution Rank"@en ;
+    nedt:layer "DT-model-extension"@en .
+
+nedt:CountyDemandAggregate a owl:Class ;
+    rdfs:label "County Demand Aggregate"@en ;
+    rdfs:subClassOf nedt:CountyKPI ;
     nedt:layer "DT-model-extension"@en .
 
 nedt:CountySummary a owl:Class ;
@@ -38565,6 +38688,11 @@ nedt:FigCollector a owl:Class ;
     rdfs:comment "In-memory buffer that captures matplotlib / Deck.GL / Chart.js output for later assembly into HTML." ;
     nedt:layer "DT-model-extension"@en .
 
+nedt:FlexibilityState a owl:Class ;
+    rdfs:label "Flexibility State"@en ;
+    rdfs:comment "Self-consumption and export behaviour of an archetype under a scenario, given its on-site generation." ;
+    nedt:layer "DT-model-extension"@en .
+
 nedt:OverloadAttribution a owl:Class ;
     rdfs:label "Overload Attribution"@en ;
     nedt:layer "DT-model-extension"@en .
@@ -38572,6 +38700,13 @@ nedt:OverloadAttribution a owl:Class ;
 nedt:OverloadedStation a owl:Class ;
     rdfs:label "Overloaded Station"@en ;
     rdfs:subClassOf nedt:LVStation ;
+    nedt:layer "DT-model-extension"@en .
+
+nedt:ScenarioAssumption a owl:Class ;
+    rdfs:label "Scenario Assumption"@en ;
+    rdfs:comment "A named, citable assumption on which a scenario and its derived indicators depend.",
+        "A written or sourced assumption underpinning a scenario parameter (CAP, SEAI, internal expert judgement)."@en ;
+    rdfs:subClassOf prov:Entity ;
     nedt:layer "DT-model-extension"@en .
 
 nedt:ValidationObservation a owl:Class ;
@@ -38654,12 +38789,6 @@ nedt:ArchetypeDescriptor a owl:Class ;
     rdfs:label "Archetype Descriptor"@en ;
     nedt:layer "core-KG-framework"@en .
 
-nedt:CapacityKPI a owl:Class ;
-    rdfs:label "Capacity KPI"@en ;
-    rdfs:comment "A capacity-risk indicator for a network asset: utilisation ratio, headroom, overload flag or overload hours." ;
-    rdfs:subClassOf nedt:KPI ;
-    nedt:layer "DT-model-extension"@en .
-
 nedt:HeatingSystem a owl:Class ;
     rdfs:label "Heating System"@en ;
     rdfs:comment "Generic space and water heating technology of a dwelling or archetype." ;
@@ -38678,6 +38807,11 @@ nedt:PVAdoptionScenario a owl:Class ;
 nedt:ScenarioParameter a owl:Class ;
     rdfs:label "Scenario Parameter"@en ;
     rdfs:comment "One numeric parameter of a scenario (HP uptake fraction, EV uptake fraction, PV kWp) bound to a single archetype and year. Value carried by nedt:uptakeValue."@en ;
+    nedt:layer "DT-model-extension"@en .
+
+nedt:SensitivityResult a owl:Class ;
+    rdfs:label "Sensitivity Result"@en ;
+    rdfs:comment "Marginal effect of perturbing one scenario parameter, holding the others fixed." ;
     nedt:layer "DT-model-extension"@en .
 
 nedt:StationTransition a owl:Class ;
@@ -39377,6 +39511,12 @@ inst:Arch_Terraced_F_6_gasboiler a nedt:Archetype ;
         inst:AC_Arch_Terraced_F_6_gasboiler_Louth,
         inst:AC_Arch_Terraced_F_6_gasboiler_Waterford ;
     nedt:hasOccupancyCategory 6 .
+
+nedt:CapacityKPI a owl:Class ;
+    rdfs:label "Capacity KPI"@en ;
+    rdfs:comment "A capacity-risk indicator for a network asset: utilisation ratio, headroom, overload flag or overload hours." ;
+    rdfs:subClassOf nedt:KPI ;
+    nedt:layer "DT-model-extension"@en .
 
 nedt:NetworkAsset a owl:Class ;
     rdfs:label "Network Asset"@en ;
@@ -42268,18 +42408,6 @@ nedt:KPI a owl:Class ;
     rdfs:label "Key Performance Indicator"@en ;
     nedt:layer "DT-model-extension"@en .
 
-nedt:LVStation a owl:Class ;
-    rdfs:label "LV Substation"@en ;
-    rdfs:comment "A low-voltage distribution substation (ESB Networks). Each dwelling is assigned to exactly one station via hull polygon." ;
-    rdfs:seeAlso cim:PowerTransformer,
-        saragon:DistributionNode ;
-    rdfs:subClassOf cim:Substation,
-        nedt:NetworkAsset,
-        saragon:Transformer ;
-    skos:closeMatch saragon:Transformer ;
-    skos:note "One-to-one with its MV/LV transformer in the ESB dataset, so the station also stands proxy for cim:PowerTransformer; the station's designed kVA is the transformer's cim:PowerTransformerEnd.ratedS."@en ;
-    nedt:layer "core-KG-framework"@en .
-
 inst:Arch_Apartment_A_2_Electric a nedt:Archetype ;
     rdfs:label "Apartment·BER A·occ 2·Electric" ;
     nedt:hasBERCategory "A" ;
@@ -43599,6 +43727,18 @@ inst:Arch_Detached_B_6_HeatPump a nedt:Archetype ;
         inst:AC_Arch_Detached_B_6_HeatPump_Waterford,
         inst:AC_Arch_Detached_B_6_HeatPump_Wicklow ;
     nedt:hasOccupancyCategory 6 .
+
+nedt:LVStation a owl:Class ;
+    rdfs:label "LV Substation"@en ;
+    rdfs:comment "A low-voltage distribution substation (ESB Networks). Each dwelling is assigned to exactly one station via hull polygon." ;
+    rdfs:seeAlso cim:PowerTransformer,
+        saragon:DistributionNode ;
+    rdfs:subClassOf cim:Substation,
+        nedt:NetworkAsset,
+        saragon:Transformer ;
+    skos:closeMatch saragon:Transformer ;
+    skos:note "One-to-one with its MV/LV transformer in the ESB dataset, so the station also stands proxy for cim:PowerTransformer; the station's designed kVA is the transformer's cim:PowerTransformerEnd.ratedS."@en ;
+    nedt:layer "core-KG-framework"@en .
 
 inst:Arch_Apartment_B_2_Electric a nedt:Archetype ;
     rdfs:label "Apartment·BER B·occ 2·Electric" ;
@@ -45216,10 +45356,6 @@ inst:Arch_Detached_C_6_HeatPump a nedt:Archetype ;
         inst:AC_Arch_Detached_C_6_HeatPump_Wicklow ;
     nedt:hasOccupancyCategory 6 .
 
-nedt:Scenario a owl:Class ;
-    rdfs:label "Scenario"@en ;
-    nedt:layer "DT-model-extension"@en .
-
 inst:Arch_Terraced_A_2_Electric a nedt:Archetype ;
     rdfs:label "Terraced·BER A·occ 2·Electric" ;
     nedt:hasBERCategory "A" ;
@@ -45819,6 +45955,10 @@ inst:Arch_Terraced_G_6_Oilboiler a nedt:Archetype ;
         inst:AC_Arch_Terraced_G_6_Oilboiler_Wexford,
         inst:AC_Arch_Terraced_G_6_Oilboiler_Wicklow ;
     nedt:hasOccupancyCategory 6 .
+
+nedt:Scenario a owl:Class ;
+    rdfs:label "Scenario"@en ;
+    nedt:layer "DT-model-extension"@en .
 
 inst:Arch_Apartment_C_2_Oilboiler a nedt:Archetype ;
     rdfs:label "Apartment·BER C·occ 2·Oilboiler" ;

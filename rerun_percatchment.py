@@ -63,10 +63,11 @@ def configure_data_root(root: str | Path | None = None, *, validate: bool = True
     CAP = ROOT / "LV_analysis/LV Network Creation/station_capacities_2024_filled.csv"
     ESB = ROOT / "catchment_methods_study/data/esb_lv_availability_2024.csv"
     LVNET = ROOT / "lv_mv_hv/lv_stations_2024.csv"
-    BLDG = ROOT / "catchment_methods_study/data/BuildingMaster_LV_Assigned_2024.csv"
+    BLDG = ROOT / "LV_analysis/2024/BuildingMaster_LV_Assigned_2024.csv"
     if not validate:
         return ROOT
-    missing = [p for p in (COUNTS, ELEC, CAP, ESB, LVNET, BLDG) if not p.exists()]
+    # The ESB availability snapshot is optional: it only adds a comparison.
+    missing = [p for p in (COUNTS, ELEC, CAP, LVNET, BLDG) if not p.exists()]
     if missing:
         details = "\n  ".join(str(p) for p in missing)
         raise FileNotFoundError(
@@ -276,22 +277,25 @@ def main() -> int:
               f"stressed={100*(red+near)/len(d):5.2f}%  max={100*u.max():8.1f}%")
 
     # ---- ESB comparison -------------------------------------------------
-    e = pd.read_csv(ESB); e["k"] = norm_station(e["Station Name"])
-    e = e.drop_duplicates("k")[["k", "esb_util"]]
-    m = d.merge(e, on="k", how="inner").dropna(subset=["esb_util"])
-    print("\n" + "=" * 74)
-    print(f"COMPARISON WITH ESB PUBLISHED UTILISATION  (n = {len(m):,})")
-    print("=" * 74)
-    for lab, col in [("released (uniform rate)", "util_released"),
-                     ("per-catchment summation", "util_new")]:
-        pr = m[col].corr(m.esb_util)
-        sp = m[col].corr(m.esb_util, method="spearman")
-        n90 = int((m[col] >= .9).sum())
-        print(f"  {lab:26s} Pearson r={pr:+.4f}  Spearman={sp:+.4f}  "
-              f">=90%: {n90:6,}  median util={m[col].median():.3f}")
-    print(f"  {'ESB published':26s} {'':32s} >=90%: {int((m.esb_util>=.9).sum()):6,}  "
-          f"median util={m.esb_util.median():.3f}")
-    m.to_csv(out / "lv_vs_esb_percatchment.csv", index=False)
+    if ESB.exists():
+        e = pd.read_csv(ESB); e["k"] = norm_station(e["Station Name"])
+        e = e.drop_duplicates("k")[["k", "esb_util"]]
+        m = d.merge(e, on="k", how="inner").dropna(subset=["esb_util"])
+        print("\n" + "=" * 74)
+        print(f"COMPARISON WITH ESB PUBLISHED UTILISATION  (n = {len(m):,})")
+        print("=" * 74)
+        for lab, col in [("released (uniform rate)", "util_released"),
+                         ("per-catchment summation", "util_new")]:
+            pr = m[col].corr(m.esb_util)
+            sp = m[col].corr(m.esb_util, method="spearman")
+            n90 = int((m[col] >= .9).sum())
+            print(f"  {lab:26s} Pearson r={pr:+.4f}  Spearman={sp:+.4f}  "
+                  f">=90%: {n90:6,}  median util={m[col].median():.3f}")
+        print(f"  {'ESB published':26s} {'':32s} >=90%: {int((m.esb_util>=.9).sum()):6,}  "
+              f"median util={m.esb_util.median():.3f}")
+        m.to_csv(out / "lv_vs_esb_percatchment.csv", index=False)
+    else:
+        print(f"\nESB availability snapshot not found, comparison skipped: {ESB}")
 
     # ---- MV roll-up on the same basis -----------------------------------
     if mv_acc:
